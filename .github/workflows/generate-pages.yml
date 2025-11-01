@@ -40,18 +40,15 @@ jobs:
       # -------------------------------------------------
       - name: Prepare directories
         run: |
-          # Create the sub‑folders we need; do NOT delete the whole assets folder
           mkdir -p assets/thumbs/zh-hant/{shuiling,bible,poetry,devotional}
           mkdir -p assets/thumbs/zh-hans/{shuiling,bible,poetry,devotional}
           mkdir -p assets/css
           mkdir -p zh-hant/{shuiling,bible,poetry,devotional}
           mkdir -p zh-hans/{shuiling,bible,poetry,devotional}
 
-          # Ensure PDFs are present in the working directory (they already exist in the repo)
           cp -r zh-hant/* zh-hant/ 2>/dev/null || true
           cp -r zh-hans/* zh-hans/ 2>/dev/null || true
 
-          # Copy the CSS file – works whether it lives in assets/css/ or directly in assets/
           if [ -f assets/css/style.css ]; then
             cp assets/css/style.css assets/css/style.css
           elif [ -f assets/style.css ]; then
@@ -85,15 +82,16 @@ jobs:
           generate_thumbnails zh-hans/poetry   assets/thumbs/zh-hans/poetry
           generate_thumbnails zh-hans/devotional assets/thumbs/zh-hans/devotional
 
-          # Give ImageMagick a moment to flush files to disk
           sleep 2
 
       # -------------------------------------------------
-      # 5️⃣ Generate HTML pages (using only echo)
+      # 5️⃣ Generate HTML pages (using echo) – **fixed paths**
       # -------------------------------------------------
       - name: Generate HTML Pages (using echo)
         run: |
           set -euo pipefail
+          REPO="philadelphia.github.io"   # <-- repository name, used for correct URLs
+
           generate_html() {
             local lang=$1
             local cat=$2
@@ -101,29 +99,33 @@ jobs:
             local out_dir="$lang/$cat"
             mkdir -p "$out_dir"
 
-            echo '<!DOCTYPE html>' > "$out_dir/index.html"
-            echo "<html lang=\"$lang\">" >> "$out_dir/index.html"
-            echo '<head>' >> "$out_dir/index.html"
-            echo '  <meta charset="UTF-8"/>' >> "$out_dir/index.html"
-            echo "  <title>$title</title>" >> "$out_dir/index.html"
-            echo '  <link rel="stylesheet" href="/assets/css/style.css"/>' >> "$out_dir/index.html"
-            echo '</head>' >> "$out_dir/index.html"
-            echo '<body>' >> "$out_dir/index.html"
-            echo '  <div class="container">' >> "$out_dir/index.html"
-            echo "    <h1>$title</h1>" >> "$out_dir/index.html"
-            echo '    <div class="icon-grid">' >> "$out_dir/index.html"
+            {
+              echo '<!DOCTYPE html>'
+              echo "<html lang=\"$lang\">"
+              echo '<head>'
+              echo '  <meta charset="UTF-8"/>'
+              echo "  <title>$title</title>"
+              # CSS path now includes the repo name
+              echo "  <link rel=\"stylesheet\" href=\"/${REPO}/assets/css/style.css\"/>"
+              echo '</head>'
+              echo '<body>'
+              echo '  <div class="container">'
+              echo "    <h1>$title</h1>"
+              echo '    <div class="icon-grid">'
 
-            for file in "$lang/$cat"/*.pdf; do
-              [ -e "$file" ] || continue
-              local fname=$(basename "$file")
-              local thumb="/assets/thumbs/$lang/$cat/$(basename "$file" .pdf).png"
-              echo "<a href=\"/$lang/$cat/$fname\" class=\"icon\" download><img src=\"$thumb\" alt=\"$fname\"/><span>$fname</span></a>" >> "$out_dir/index.html"
-            done
+              for file in "$lang/$cat"/*.pdf; do
+                [ -e "$file" ] || continue
+                fname=$(basename "$file")
+                thumb="/${REPO}/assets/thumbs/$lang/$cat/${fname%.pdf}.png"
+                # PDF link also includes the repo name
+                echo "<a href=\"/${REPO}/$lang/$cat/$fname\" class=\"icon\" download><img src=\"$thumb\" alt=\"$fname\"/><span>$fname</span></a>"
+              done
 
-            echo '    </div>' >> "$out_dir/index.html"
-            echo '  </div>' >> "$out_dir/index.html"
-            echo '</body>' >> "$out_dir/index.html"
-            echo '</html>' >> "$out_dir/index.html"
+              echo '    </div>'
+              echo '  </div>'
+              echo '</body>'
+              echo '</html>'
+            } > "$out_dir/index.html"
           }
 
           generate_html zh-hant shuiling   "屬靈書"
