@@ -1,138 +1,118 @@
 /* -------------------------------------------------
-   Global reset & base typography
+   Global reset & base styles
    ------------------------------------------------- */
-html {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  font-size: 16px;               /* base size, scales with browser settings */
-}
-*, *::before, *::after {
-  box-sizing: inherit;
   margin: 0;
   padding: 0;
 }
 
-/* System‑font stack – fast, looks good on all platforms */
-body {
-  font-family: -apple-system, BlinkMacSystemFont,
-               "Segoe UI", Roboto, Helvetica, Arial,
-               sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  line-height: 1.6;
-  background: #f4f4f4;
+/* Use a comfortable system font stack */
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
   color: #222;
-  padding: 1rem;
+  background-color: #fafafa;
 }
 
 /* -------------------------------------------------
-   Layout containers
+   Layout container
    ------------------------------------------------- */
 .container {
-  max-width: 1200px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 1rem;
+  padding: 2rem 1rem;
+  text-align: center;
 }
 
 /* -------------------------------------------------
-   Grid of icons (cards)
+   Headings
+   ------------------------------------------------- */
+h1 {
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+/* -------------------------------------------------
+   Icon grid – the clickable tiles
    ------------------------------------------------- */
 .icon-grid {
   display: grid;
-  /* minmax keeps cards roughly the same visual size across breakpoints */
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1.5rem;
-  margin-top: 1rem;
+  gap: 1rem;
+  /* 2 columns on small screens, up to 4 on larger */
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  justify-items: center;
 }
 
-/* -------------------------------------------------
-   Card (icon) styling
-   ------------------------------------------------- */
+/* Individual tile */
 .icon {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  text-decoration: none;
-  color: inherit;
+  justify-content: center;
+  min-height: 80px;
+  width: 100%;
+  padding: 0.5rem 1rem;
   background: #fff;
-  border: 1px solid #e0e0e0;
+  border: 2px solid #e0e0e0;
   border-radius: 8px;
-  padding: 1.25rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  text-decoration: none;
+  font-size: 1rem;
+  color: #34495e;
+  transition: all 0.2s ease;
 }
 
-/* Hover / focus – subtle lift and border highlight */
+/* Hover / focus state */
 .icon:hover,
-.icon:focus-visible {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.12);
-  border-color: #c0c0c0;
-}
-
-/* Image inside the card */
-.icon img {
-  max-width: 160px;
-  max-height: 200px;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border-radius: 5px;
-  margin-bottom: 0.75rem;
-}
-
-/* Title under the thumbnail */
-.icon span {
-  font-size: 0.95rem;
-  line-height: 1.3;
-  color: #333;
-  word-break: break-word;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;          /* limit to two lines */
-  -webkit-box-orient: vertical;
+.icon:focus {
+  background: #3498db;
+  color: #fff;
+  border-color: #2980b9;
 }
 
 /* -------------------------------------------------
-   Responsive adjustments – keep icon size stable
+   Responsive tweaks
    ------------------------------------------------- */
-@media (max-width: 991px) {
-  .icon-grid {
-    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-    gap: 1.25rem;
+@media (min-width: 600px) {
+  .icon {
+    font-size: 1.1rem;
+    min-height: 100px;
   }
 }
-@media (max-width: 767px) {
+
+@media (min-width: 900px) {
   .icon-grid {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 1rem;
-  }
-}
-@media (max-width: 575px) {
-  .icon-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 0.875rem;
-  }
-  .container {
-    padding: 0.75rem;
+    gap: 1.5rem;
   }
 }
 
 /* -------------------------------------------------
-   Optional dark‑mode support (no extra HTML needed)
+   Utility classes (optional)
+   ------------------------------------------------- */
+.text-center { text-align: center; }
+.mt-1 { margin-top: 0.5rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+
+/* -------------------------------------------------
+   Dark‑mode support (prefers‑color‑scheme)
    ------------------------------------------------- */
 @media (prefers-color-scheme: dark) {
-  body {
-    background: #1e1e1e;
+  html {
+    background-color: #1e1e1e;
     color: #e0e0e0;
   }
+  .container { background: transparent; }
   .icon {
-    background: #2a2a2a;
+    background: #2c2c2c;
     border-color: #444;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    color: #e0e0e0;
   }
   .icon:hover,
-  .icon:focus-visible {
-    border-color: #666;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.6);
+  .icon:focus {
+    background: #3b5998;
+    border-color: #2d4373;
   }
 }
