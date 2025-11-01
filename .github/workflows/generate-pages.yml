@@ -64,7 +64,7 @@ jobs:
             mkdir -p "$lang/$cat"
 
             # ---- start of heredoc (must be left‑aligned) ----
-            cat > "$lang/$cat/index.html" <<EOF
+cat > "$lang/$cat/index.html" <<EOF
 <!DOCTYPE html>
 <html lang="$lang">
 <head>
@@ -135,7 +135,7 @@ EOF
         uses: actions/download-artifact@v4
         with:
           name: site
-          path: site   # everything is placed under ./site
+          path: site   # everything placed under ./site
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -143,7 +143,7 @@ EOF
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site   # the folder that contains the generated site
+          path: site   # folder containing the generated site
 
       - name: Deploy to GitHub Pages
         id: deployment
