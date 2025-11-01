@@ -5,60 +5,41 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# -------------------------------------------------
-# Permissions needed for committing and publishing
-# -------------------------------------------------
 permissions:
-  contents: write      # commit generated files back to the repo
+  contents: write      # commit generated files
   pages: write        # publish to GitHub Pages
   id-token: write
 
-# -------------------------------------------------
-# Prevent overlapping runs
-# -------------------------------------------------
 concurrency:
   group: pages
   cancel-in-progress: true
 
-# =================================================
-# 1️⃣  Generate PDFs → thumbnails → HTML pages
-# =================================================
 jobs:
+  # -------------------------------------------------
+  # 1️⃣  Build thumbnails & HTML pages
+  # -------------------------------------------------
   generate:
     runs-on: ubuntu-latest
     outputs:
       artifact-name: ${{ steps.upload-artifact.outputs.artifact-name }}
     steps:
-      # -------------------------------------------------
-      # Checkout source code (main branch)
-      # -------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # -------------------------------------------------
-      # Node (if you need it for other scripts)
-      # -------------------------------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
-      # -------------------------------------------------
-      # Install system deps & create thumbnail dirs
-      # -------------------------------------------------
       - name: Install dependencies & create dirs
         run: |
           sudo apt-get update && sudo apt-get install -y imagemagick ghostscript
           mkdir -p assets/thumbs/zh-{hant,hans}/{shuiling,bible,poetry,devotional}
 
-      # -------------------------------------------------
-      # Generate PDF thumbnails
-      # -------------------------------------------------
       - name: Generate PDF Thumbnails
         run: |
-          function generate_thumbnails {
-            local src=$1
-            local dst=$2
+          generate_thumbnails() {
+            src=$1 dst=$2
             for f in "$src"/*.pdf; do
               [ -e "$f" ] || continue
               name=$(basename "$f" .pdf)
@@ -76,17 +57,13 @@ jobs:
           generate_thumbnails zh-hans/poetry  assets/thumbs/zh-hans/poetry
           generate_thumbnails zh-hans/devotional assets/thumbs/zh-hans/devotional
 
-      # -------------------------------------------------
-      # Generate HTML index pages
-      # -------------------------------------------------
       - name: Generate HTML Pages
         run: |
-          function generate_html {
-            local lang=$1
-            local cat=$2
-            local title=$3
+          generate_html() {
+            lang=$1 cat=$2 title=$3
             mkdir -p "$lang/$cat"
 
+            # ---- start of heredoc (must be left‑aligned) ----
             cat > "$lang/$cat/index.html" <<EOF
 <!DOCTYPE html>
 <html lang="$lang">
@@ -100,6 +77,7 @@ jobs:
   <h1>$title</h1>
   <div class="icon-grid">
 EOF
+            # ---- end of static part ----
 
             for f in "$lang/$cat"/*.pdf; do
               [ -e "$f" ] || continue
@@ -125,10 +103,7 @@ EOF
           generate_html zh-hans bible   "圣经难字粤音"
           generate_html zh-hans poetry  "诗歌"
           generate_html zh-hans devotional "灵修资料"
-
-      # -------------------------------------------------
-      # Commit any new/changed files back to the repo
-      # -------------------------------------------------
+          
       - name: Commit generated files
         run: |
           git config --local user.email "action@github.com"
@@ -141,57 +116,38 @@ EOF
             git push
           fi
 
-      # -------------------------------------------------
-      # Upload the whole repository (including generated files) as an artifact
-      # -------------------------------------------------
       - name: Upload site artifact
         id: upload-artifact
         uses: actions/upload-artifact@v4
         with:
           name: site
           path: .
-          retention-days: 1   # keep just long enough for the deploy job
+          retention-days: 1
 
-# =================================================
-# 2️⃣  Deploy the artifact to GitHub Pages
-# =================================================
+  # -------------------------------------------------
+  # 2️⃣  Deploy the artifact to GitHub Pages
+  # -------------------------------------------------
   deploy:
     needs: generate
     runs-on: ubuntu-latest
     steps:
-      # -------------------------------------------------
-      # Retrieve the artifact produced by the generate job
-      # -------------------------------------------------
       - name: Download site artifact
         uses: actions/download-artifact@v4
         with:
           name: site
-          path: site   # puts everything under a folder called “site”
+          path: site   # everything is placed under ./site
 
-      # -------------------------------------------------
-      # Configure the Pages environment (creates the
-      # deployment token that actions/deploy-pages needs)
-      # -------------------------------------------------
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # -------------------------------------------------
-      # Upload the artifact that GitHub Pages will serve
-      # -------------------------------------------------
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site   # the folder containing the generated HTML & assets
+          path: site   # the folder that contains the generated site
 
-      # -------------------------------------------------
-      # Deploy to GitHub Pages
-      # -------------------------------------------------
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
-      # -------------------------------------------------
-      # (Optional) Show the URL of the newly deployed site
-      # -------------------------------------------------
       - name: Show deployment URL
         run: echo "✅ Deployed to ${{ steps.deployment.outputs.page_url }}"
