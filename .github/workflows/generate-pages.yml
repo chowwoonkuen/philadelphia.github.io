@@ -2,59 +2,83 @@ name: Generate Static Pages, Thumbnails & Deploy to Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
+# -------------------------------------------------
+# Permissions needed for committing and publishing
+# -------------------------------------------------
 permissions:
-  contents: write
-  pages: write
+  contents: write      # commit generated files back to the repo
+  pages: write        # publish to GitHub Pages
   id-token: write
 
+# -------------------------------------------------
+# Prevent overlapping runs
+# -------------------------------------------------
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: true
 
+# =================================================
+# 1️⃣  Generate PDFs → thumbnails → HTML pages
+# =================================================
 jobs:
   generate:
     runs-on: ubuntu-latest
+    outputs:
+      artifact-name: ${{ steps.upload-artifact.outputs.artifact-name }}
     steps:
+      # -------------------------------------------------
+      # Checkout source code (main branch)
+      # -------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # -------------------------------------------------
+      # Node (if you need it for other scripts)
+      # -------------------------------------------------
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
-      - name: Install dependencies
+      # -------------------------------------------------
+      # Install system deps & create thumbnail dirs
+      # -------------------------------------------------
+      - name: Install dependencies & create dirs
         run: |
           sudo apt-get update && sudo apt-get install -y imagemagick ghostscript
-          mkdir -p assets/thumbs/zh-hant/{shuiling,bible,poetry,devotional} \
-                   assets/thumbs/zh-hans/{shuiling,bible,poetry,devotional}
+          mkdir -p assets/thumbs/zh-{hant,hans}/{shuiling,bible,poetry,devotional}
 
+      # -------------------------------------------------
+      # Generate PDF thumbnails
+      # -------------------------------------------------
       - name: Generate PDF Thumbnails
         run: |
           function generate_thumbnails {
-            local dir=$1
-            local thumb_dir=$2
-            for file in "$dir"/*.pdf; do
-              [ -e "$file" ] || continue
-              filename=$(basename "$file" .pdf)
-              convert -density 150 "$file"[0] -thumbnail 200x200^ -gravity center -extent 200x200 "$thumb_dir/$filename.png"
+            local src=$1
+            local dst=$2
+            for f in "$src"/*.pdf; do
+              [ -e "$f" ] || continue
+              name=$(basename "$f" .pdf)
+              convert -density 150 "$f"[0] -thumbnail 200x200^ -gravity center -extent 200x200 "$dst/$name.png"
             done
           }
 
           generate_thumbnails zh-hant/shuiling assets/thumbs/zh-hant/shuiling
-          generate_thumbnails zh-hant/bible assets/thumbs/zh-hant/bible
-          generate_thumbnails zh-hant/poetry assets/thumbs/zh-hant/poetry
+          generate_thumbnails zh-hant/bible   assets/thumbs/zh-hant/bible
+          generate_thumbnails zh-hant/poetry  assets/thumbs/zh-hant/poetry
           generate_thumbnails zh-hant/devotional assets/thumbs/zh-hant/devotional
 
           generate_thumbnails zh-hans/shuiling assets/thumbs/zh-hans/shuiling
-          generate_thumbnails zh-hans/bible assets/thumbs/zh-hans/bible
-          generate_thumbnails zh-hans/poetry assets/thumbs/zh-hans/poetry
+          generate_thumbnails zh-hans/bible   assets/thumbs/zh-hans/bible
+          generate_thumbnails zh-hans/poetry  assets/thumbs/zh-hans/poetry
           generate_thumbnails zh-hans/devotional assets/thumbs/zh-hans/devotional
 
+      # -------------------------------------------------
+      # Generate HTML index pages
+      # -------------------------------------------------
       - name: Generate HTML Pages
         run: |
           function generate_html {
@@ -63,60 +87,111 @@ jobs:
             local title=$3
             mkdir -p "$lang/$cat"
 
-            echo '<!DOCTYPE html><html lang="'$lang'"><head><meta charset="UTF-8"/><title>'"$title"'</title><link rel="stylesheet" href="../../assets/css/style.css"/></head><body><div class="container"><h1>'"$title"'</h1><div class="icon-grid">' > "$lang/$cat/index.html"
+            cat > "$lang/$cat/index.html" <<EOF
+<!DOCTYPE html>
+<html lang="$lang">
+<head>
+  <meta charset="UTF-8">
+  <title>$title</title>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+<div class="container">
+  <h1>$title</h1>
+  <div class="icon-grid">
+EOF
 
-            for file in "$lang/$cat"/*.pdf; do
-              [ -e "$file" ] || continue
-              filename=$(basename "$file")
-              thumb="../../assets/thumbs/$lang/$cat/$(basename "$file" .pdf).png"
-              echo "<a href=\"$filename\" class=\"icon\" download><img src=\"$thumb\" alt=\"$filename\"/><span>$filename</span></a>" >> "$lang/$cat/index.html"
+            for f in "$lang/$cat"/*.pdf; do
+              [ -e "$f" ] || continue
+              name=$(basename "$f")
+              thumb="../../assets/thumbs/$lang/$cat/${name%.pdf}.png"
+              echo "<a href=\"$name\" class=\"icon\" download><img src=\"$thumb\" alt=\"$name\"/><span>$name</span></a>" >> "$lang/$cat/index.html"
             done
 
-            echo "</div></div></body></html>" >> "$lang/$cat/index.html"
+            cat >> "$lang/$cat/index.html" <<EOF
+  </div>
+</div>
+</body>
+</html>
+EOF
           }
 
           generate_html zh-hant shuiling "屬靈書"
-          generate_html zh-hant bible "聖經難字粵音"
-          generate_html zh-hant poetry "詩歌"
+          generate_html zh-hant bible   "聖經難字粵音"
+          generate_html zh-hant poetry  "詩歌"
           generate_html zh-hant devotional "靈修資料"
 
           generate_html zh-hans shuiling "属灵书"
-          generate_html zh-hans bible "圣经难字粤音"
-          generate_html zh-hans poetry "诗歌"
+          generate_html zh-hans bible   "圣经难字粤音"
+          generate_html zh-hans poetry  "诗歌"
           generate_html zh-hans devotional "灵修资料"
 
+      # -------------------------------------------------
+      # Commit any new/changed files back to the repo
+      # -------------------------------------------------
       - name: Commit generated files
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .
-          
-          # Only commit if there are changes
-          if [ -n "$(git diff --cached)" ]; then
-            git commit -m "Auto-generate pages and thumbnails"
-            git push
-          else
+          if git diff --cached --quiet; then
             echo "No changes to commit"
+          else
+            git commit -m "Auto‑generate pages & thumbnails"
+            git push
           fi
 
+      # -------------------------------------------------
+      # Upload the whole repository (including generated files) as an artifact
+      # -------------------------------------------------
+      - name: Upload site artifact
+        id: upload-artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: .
+          retention-days: 1   # keep just long enough for the deploy job
+
+# =================================================
+# 2️⃣  Deploy the artifact to GitHub Pages
+# =================================================
   deploy:
     needs: generate
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      # -------------------------------------------------
+      # Retrieve the artifact produced by the generate job
+      # -------------------------------------------------
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: site   # puts everything under a folder called “site”
 
+      # -------------------------------------------------
+      # Configure the Pages environment (creates the
+      # deployment token that actions/deploy-pages needs)
+      # -------------------------------------------------
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload artifact
+      # -------------------------------------------------
+      # Upload the artifact that GitHub Pages will serve
+      # -------------------------------------------------
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: site   # the folder containing the generated HTML & assets
 
+      # -------------------------------------------------
+      # Deploy to GitHub Pages
+      # -------------------------------------------------
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      # -------------------------------------------------
+      # (Optional) Show the URL of the newly deployed site
+      # -------------------------------------------------
+      - name: Show deployment URL
+        run: echo "✅ Deployed to ${{ steps.deployment.outputs.page_url }}"
