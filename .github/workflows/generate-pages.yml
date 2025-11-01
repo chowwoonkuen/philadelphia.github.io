@@ -18,7 +18,7 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     outputs:
-      site-dir: site
+      site-dir: .
     steps:
       # -------------------------------------------------
       # 1️⃣ Checkout repository
@@ -36,31 +36,35 @@ jobs:
           sudo apt-get update && sudo apt-get install -y imagemagick ghostscript
 
       # -------------------------------------------------
-      # 3️⃣ Prepare site folder (no “public”)
+      # 3️⃣ Prepare root‑level folder structure
       # -------------------------------------------------
-      - name: Prepare site directory
+      - name: Prepare root directories
         run: |
-          rm -rf site
-          mkdir -p site
-          mkdir -p site/assets/thumbs/zh-hant/{shuiling,bible,poetry,devotional}
-          mkdir -p site/assets/thumbs/zh-hans/{shuiling,bible,poetry,devotional}
-          mkdir -p site/assets/css
-          mkdir -p site/zh-hant/{shuiling,bible,poetry,devotional}
-          mkdir -p site/zh-hans/{shuiling,bible,poetry,devotional}
+          # clean any previous generated assets
+          rm -rf assets/thumbs
+          rm -rf assets/css
+          rm -rf zh-hant
+          rm -rf zh-hans
 
-          # copy PDFs into the site folder
-          cp -r zh-hant/* site/zh-hant/ 2>/dev/null || true
-          cp -r zh-hans/* site/zh-hans/ 2>/dev/null || true
+          mkdir -p assets/thumbs/zh-hant/{shuiling,bible,poetry,devotional}
+          mkdir -p assets/thumbs/zh-hans/{shuiling,bible,poetry,devotional}
+          mkdir -p assets/css
+          mkdir -p zh-hant/{shuiling,bible,poetry,devotional}
+          mkdir -p zh-hans/{shuiling,bible,poetry,devotional}
+
+          # copy PDFs into the root folders
+          cp -r zh-hant/* zh-hant/ 2>/dev/null || true
+          cp -r zh-hans/* zh-hans/ 2>/dev/null || true
 
           # copy CSS (handles both possible locations)
           if [ -f assets/css/style.css ]; then
-            cp assets/css/style.css site/assets/css/style.css
+            cp assets/css/style.css assets/css/style.css
           elif [ -f assets/style.css ]; then
-            cp assets/style.css site/assets/css/style.css
+            cp assets/style.css assets/css/style.css
           fi
 
       # -------------------------------------------------
-      # 4️⃣ Generate thumbnails (writes into site/assets/thumbs)
+      # 4️⃣ Generate thumbnails (writes into assets/thumbs)
       # -------------------------------------------------
       - name: Generate PDF Thumbnails
         run: |
@@ -76,17 +80,17 @@ jobs:
             done
           }
 
-          generate_thumbnails zh-hant/shuiling site/assets/thumbs/zh-hant/shuiling
-          generate_thumbnails zh-hant/bible    site/assets/thumbs/zh-hant/bible
-          generate_thumbnails zh-hant/poetry   site/assets/thumbs/zh-hant/poetry
-          generate_thumbnails zh-hant/devotional site/assets/thumbs/zh-hant/devotional
+          generate_thumbnails zh-hant/shuiling assets/thumbs/zh-hant/shuiling
+          generate_thumbnails zh-hant/bible    assets/thumbs/zh-hant/bible
+          generate_thumbnails zh-hant/poetry   assets/thumbs/zh-hant/poetry
+          generate_thumbnails zh-hant/devotional assets/thumbs/zh-hant/devotional
 
-          generate_thumbnails zh-hans/shuiling site/assets/thumbs/zh-hans/shuiling
-          generate_thumbnails zh-hans/bible    site/assets/thumbs/zh-hans/bible
-          generate_thumbnails zh-hans/poetry   site/assets/thumbs/zh-hans/poetry
-          generate_thumbnails zh-hans/devotional site/assets/thumbs/zh-hans/devotional
+          generate_thumbnails zh-hans/shuiling assets/thumbs/zh-hans/shuiling
+          generate_thumbnails zh-hans/bible    assets/thumbs/zh-hans/bible
+          generate_thumbnails zh-hans/poetry   assets/thumbs/zh-hans/poetry
+          generate_thumbnails zh-hans/devotional assets/thumbs/zh-hans/devotional
 
-          # ensure files are flushed
+          # give ImageMagick a moment to finish writing files
           sleep 2
 
       # -------------------------------------------------
@@ -99,7 +103,7 @@ jobs:
             local lang=$1
             local cat=$2
             local title=$3
-            local out_dir="site/$lang/$cat"
+            local out_dir="$lang/$cat"
             mkdir -p "$out_dir"
 
             echo '<!DOCTYPE html>' > "$out_dir/index.html"
@@ -114,7 +118,7 @@ jobs:
             echo "    <h1>$title</h1>" >> "$out_dir/index.html"
             echo '    <div class="icon-grid">' >> "$out_dir/index.html"
 
-            for file in site/"$lang"/"$cat"/*.pdf; do
+            for file in "$lang/$cat"/*.pdf; do
               [ -e "$file" ] || continue
               local fname=$(basename "$file")
               local thumb="/assets/thumbs/$lang/$cat/$(basename "$file" .pdf).png"
@@ -138,15 +142,15 @@ jobs:
           generate_html zh-hans devotional "灵修资料"
 
       # -------------------------------------------------
-      # 6️⃣ (Optional) Commit generated site back to repo
+      # 6️⃣ (Optional) Commit generated files back to repo
       # -------------------------------------------------
       - name: (Optional) Commit generated files back to repo
         if: ${{ always() }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add site || true
-          if [ -n "$(git status --porcelain site)" ]; then
+          git add assets zh-hant zh-hans || true
+          if [ -n "$(git status --porcelain assets zh-hant zh-hans)" ]; then
             git commit -m "Auto‑generate pages and thumbnails" || true
             git push origin main || true
           else
@@ -154,13 +158,13 @@ jobs:
           fi
 
       # -------------------------------------------------
-      # 7️⃣ Upload site artifact for deployment
+      # 7️⃣ Upload artifact for deployment (root of repo)
       # -------------------------------------------------
       - name: Upload site artifact
         uses: actions/upload-artifact@v4
         with:
           name: site
-          path: site
+          path: .
 
   deploy:
     needs: generate
@@ -175,12 +179,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: site
-          path: site
+          path: .
 
       - name: Upload artifact to Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'site'
+          path: .
 
       - name: Deploy to GitHub Pages
         id: deployment
