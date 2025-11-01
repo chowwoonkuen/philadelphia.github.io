@@ -2,8 +2,7 @@ name: Generate Static Pages, Thumbnails & Deploy to Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -19,74 +18,88 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     outputs:
-      site-dir: public
+      site-dir: site
     steps:
+      # -------------------------------------------------
+      # 1️⃣ Checkout repository
+      # -------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
+      # -------------------------------------------------
+      # 2️⃣ Install system tools
+      # -------------------------------------------------
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y imagemagick ghostscript
 
-      - name: Prepare public directory
+      # -------------------------------------------------
+      # 3️⃣ Prepare site folder (no “public”)
+      # -------------------------------------------------
+      - name: Prepare site directory
         run: |
-          rm -rf public
-          mkdir -p public
-          mkdir -p public/assets/thumbs/zh-hant/{shuiling,bible,poetry,devotional}
-          mkdir -p public/assets/thumbs/zh-hans/{shuiling,bible,poetry,devotional}
-          mkdir -p public/assets/css
-          mkdir -p public/zh-hant/{shuiling,bible,poetry,devotional}
-          mkdir -p public/zh-hans/{shuiling,bible,poetry,devotional}
+          rm -rf site
+          mkdir -p site
+          mkdir -p site/assets/thumbs/zh-hant/{shuiling,bible,poetry,devotional}
+          mkdir -p site/assets/thumbs/zh-hans/{shuiling,bible,poetry,devotional}
+          mkdir -p site/assets/css
+          mkdir -p site/zh-hant/{shuiling,bible,poetry,devotional}
+          mkdir -p site/zh-hans/{shuiling,bible,poetry,devotional}
 
-          # Copy source PDFs into public so they are served
-          cp -r zh-hant/* public/zh-hant/ 2>/dev/null || true
-          cp -r zh-hans/* public/zh-hans/ 2>/dev/null || true
+          # copy PDFs into the site folder
+          cp -r zh-hant/* site/zh-hant/ 2>/dev/null || true
+          cp -r zh-hans/* site/zh-hans/ 2>/dev/null || true
 
-          # Copy CSS into public assets (adjust path if your css lives elsewhere)
+          # copy CSS (handles both possible locations)
           if [ -f assets/css/style.css ]; then
-            cp assets/css/style.css public/assets/css/style.css
+            cp assets/css/style.css site/assets/css/style.css
+          elif [ -f assets/style.css ]; then
+            cp assets/style.css site/assets/css/style.css
           fi
 
+      # -------------------------------------------------
+      # 4️⃣ Generate thumbnails (writes into site/assets/thumbs)
+      # -------------------------------------------------
       - name: Generate PDF Thumbnails
         run: |
           set -euo pipefail
-          function generate_thumbnails {
+          generate_thumbnails() {
             local src_dir="$1"
             local out_dir="$2"
             mkdir -p "$out_dir"
             for file in "$src_dir"/*.pdf; do
               [ -e "$file" ] || continue
-              filename=$(basename "$file" .pdf)
-              convert -density 150 "$file"[0] -thumbnail 200x200^ -gravity center -extent 200x200 "$out_dir/$filename.png"
+              local name=$(basename "$file" .pdf)
+              convert -density 150 "$file"[0] -thumbnail 200x200^ -gravity center -extent 200x200 "$out_dir/$name.png"
             done
           }
 
-          # Generate from the repository source PDFs, write thumbnails into public
-          generate_thumbnails zh-hant/shuiling public/assets/thumbs/zh-hant/shuiling
-          generate_thumbnails zh-hant/bible public/assets/thumbs/zh-hant/bible
-          generate_thumbnails zh-hant/poetry public/assets/thumbs/zh-hant/poetry
-          generate_thumbnails zh-hant/devotional public/assets/thumbs/zh-hant/devotional
+          generate_thumbnails zh-hant/shuiling site/assets/thumbs/zh-hant/shuiling
+          generate_thumbnails zh-hant/bible    site/assets/thumbs/zh-hant/bible
+          generate_thumbnails zh-hant/poetry   site/assets/thumbs/zh-hant/poetry
+          generate_thumbnails zh-hant/devotional site/assets/thumbs/zh-hant/devotional
 
-          generate_thumbnails zh-hans/shuiling public/assets/thumbs/zh-hans/shuiling
-          generate_thumbnails zh-hans/bible public/assets/thumbs/zh-hans/bible
-          generate_thumbnails zh-hans/poetry public/assets/thumbs/zh-hans/poetry
-          generate_thumbnails zh-hans/devotional public/assets/thumbs/zh-hans/devotional
+          generate_thumbnails zh-hans/shuiling site/assets/thumbs/zh-hans/shuiling
+          generate_thumbnails zh-hans/bible    site/assets/thumbs/zh-hans/bible
+          generate_thumbnails zh-hans/poetry   site/assets/thumbs/zh-hans/poetry
+          generate_thumbnails zh-hans/devotional site/assets/thumbs/zh-hans/devotional
 
+          # ensure files are flushed
+          sleep 2
+
+      # -------------------------------------------------
+      # 5️⃣ Generate HTML pages (using only echo)
+      # -------------------------------------------------
       - name: Generate HTML Pages (using echo)
         run: |
           set -euo pipefail
-          function generate_html {
+          generate_html() {
             local lang=$1
             local cat=$2
             local title=$3
-            local out_dir="public/$lang/$cat"
+            local out_dir="site/$lang/$cat"
             mkdir -p "$out_dir"
 
             echo '<!DOCTYPE html>' > "$out_dir/index.html"
@@ -101,12 +114,11 @@ jobs:
             echo "    <h1>$title</h1>" >> "$out_dir/index.html"
             echo '    <div class="icon-grid">' >> "$out_dir/index.html"
 
-            # iterate over PDFs in the public copy to ensure links point to public paths
-            for file in public/"$lang"/"$cat"/*.pdf; do
+            for file in site/"$lang"/"$cat"/*.pdf; do
               [ -e "$file" ] || continue
-              filename=$(basename "$file")
-              thumb="/assets/thumbs/$lang/$cat/$(basename "$file" .pdf).png"
-              echo "<a href=\"/$lang/$cat/$filename\" class=\"icon\" download><img src=\"$thumb\" alt=\"$filename\"/><span>$filename</span></a>" >> "$out_dir/index.html"
+              local fname=$(basename "$file")
+              local thumb="/assets/thumbs/$lang/$cat/$(basename "$file" .pdf).png"
+              echo "<a href=\"/$lang/$cat/$fname\" class=\"icon\" download><img src=\"$thumb\" alt=\"$fname\"/><span>$fname</span></a>" >> "$out_dir/index.html"
             done
 
             echo '    </div>' >> "$out_dir/index.html"
@@ -115,34 +127,40 @@ jobs:
             echo '</html>' >> "$out_dir/index.html"
           }
 
-          generate_html zh-hant shuiling "屬靈書"
-          generate_html zh-hant bible "聖經難字粵音"
-          generate_html zh-hant poetry "詩歌"
+          generate_html zh-hant shuiling   "屬靈書"
+          generate_html zh-hant bible      "聖經難字粵音"
+          generate_html zh-hant poetry     "詩歌"
           generate_html zh-hant devotional "靈修資料"
 
-          generate_html zh-hans shuiling "属灵书"
-          generate_html zh-hans bible "圣经难字粤音"
-          generate_html zh-hans poetry "诗歌"
+          generate_html zh-hans shuiling   "属灵书"
+          generate_html zh-hans bible      "圣经难字粤音"
+          generate_html zh-hans poetry     "诗歌"
           generate_html zh-hans devotional "灵修资料"
 
+      # -------------------------------------------------
+      # 6️⃣ (Optional) Commit generated site back to repo
+      # -------------------------------------------------
       - name: (Optional) Commit generated files back to repo
         if: ${{ always() }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add public || true
-          if [ -n "$(git status --porcelain public)" ]; then
-            git commit -m "Auto-generate pages and thumbnails" || true
+          git add site || true
+          if [ -n "$(git status --porcelain site)" ]; then
+            git commit -m "Auto‑generate pages and thumbnails" || true
             git push origin main || true
           else
             echo "No changes to commit"
           fi
 
+      # -------------------------------------------------
+      # 7️⃣ Upload site artifact for deployment
+      # -------------------------------------------------
       - name: Upload site artifact
         uses: actions/upload-artifact@v4
         with:
           name: site
-          path: public
+          path: site
 
   deploy:
     needs: generate
