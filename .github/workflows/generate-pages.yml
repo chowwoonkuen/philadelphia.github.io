@@ -34,30 +34,41 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y imagemagick ghostscript
-          mkdir -p public/assets/thumbs/zh-hant/{shuiling,bible,poetry,devotional} \
-                   public/assets/thumbs/zh-hans/{shuiling,bible,poetry,devotional}
+
+      - name: Prepare public directory
+        run: |
+          rm -rf public
+          mkdir -p public
+          mkdir -p public/assets/thumbs/zh-hant/{shuiling,bible,poetry,devotional}
+          mkdir -p public/assets/thumbs/zh-hans/{shuiling,bible,poetry,devotional}
+          mkdir -p public/assets/css
           mkdir -p public/zh-hant/{shuiling,bible,poetry,devotional}
           mkdir -p public/zh-hans/{shuiling,bible,poetry,devotional}
-          mkdir -p public/assets/css
-          # copy your css (adjust path if different)
-          cp -f assets/css/style.css public/assets/css/style.css || true
-          # copy PDF source files into public so links work (adjust source paths if different)
-          cp -r zh-hant public/ || true
-          cp -r zh-hans public/ || true
+
+          # Copy source PDFs into public so they are served
+          cp -r zh-hant/* public/zh-hant/ 2>/dev/null || true
+          cp -r zh-hans/* public/zh-hans/ 2>/dev/null || true
+
+          # Copy CSS into public assets (adjust path if your css lives elsewhere)
+          if [ -f assets/css/style.css ]; then
+            cp assets/css/style.css public/assets/css/style.css
+          fi
 
       - name: Generate PDF Thumbnails
         run: |
+          set -euo pipefail
           function generate_thumbnails {
-            local src_dir=$1
-            local thumb_dir=$2
-            mkdir -p "$thumb_dir"
+            local src_dir="$1"
+            local out_dir="$2"
+            mkdir -p "$out_dir"
             for file in "$src_dir"/*.pdf; do
               [ -e "$file" ] || continue
               filename=$(basename "$file" .pdf)
-              convert -density 150 "$file"[0] -thumbnail 200x200^ -gravity center -extent 200x200 "$thumb_dir/$filename.png"
+              convert -density 150 "$file"[0] -thumbnail 200x200^ -gravity center -extent 200x200 "$out_dir/$filename.png"
             done
           }
 
+          # Generate from the repository source PDFs, write thumbnails into public
           generate_thumbnails zh-hant/shuiling public/assets/thumbs/zh-hant/shuiling
           generate_thumbnails zh-hant/bible public/assets/thumbs/zh-hant/bible
           generate_thumbnails zh-hant/poetry public/assets/thumbs/zh-hant/poetry
@@ -68,8 +79,9 @@ jobs:
           generate_thumbnails zh-hans/poetry public/assets/thumbs/zh-hans/poetry
           generate_thumbnails zh-hans/devotional public/assets/thumbs/zh-hans/devotional
 
-      - name: Generate HTML Pages
+      - name: Generate HTML Pages (using echo)
         run: |
+          set -euo pipefail
           function generate_html {
             local lang=$1
             local cat=$2
@@ -89,7 +101,8 @@ jobs:
             echo "    <h1>$title</h1>" >> "$out_dir/index.html"
             echo '    <div class="icon-grid">' >> "$out_dir/index.html"
 
-            for file in "$lang/$cat"/*.pdf; do
+            # iterate over PDFs in the public copy to ensure links point to public paths
+            for file in public/"$lang"/"$cat"/*.pdf; do
               [ -e "$file" ] || continue
               filename=$(basename "$file")
               thumb="/assets/thumbs/$lang/$cat/$(basename "$file" .pdf).png"
@@ -112,7 +125,7 @@ jobs:
           generate_html zh-hans poetry "诗歌"
           generate_html zh-hans devotional "灵修资料"
 
-      - name: Commit generated files (optional)
+      - name: (Optional) Commit generated files back to repo
         if: ${{ always() }}
         run: |
           git config --local user.email "action@github.com"
