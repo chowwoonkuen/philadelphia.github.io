@@ -46,13 +46,19 @@ jobs:
           mkdir -p zh-hant/{shuiling,bible,poetry,devotional}
           mkdir -p zh-hans/{shuiling,bible,poetry,devotional}
 
+          # Preserve any existing content (no‑op if directories are empty)
           cp -r zh-hant/* zh-hant/ 2>/dev/null || true
           cp -r zh-hans/* zh-hans/ 2>/dev/null || true
 
+          # ----‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑-
+          # Copy the CSS file only when the source exists **and**
+          # the destination is a different path.
+          # -------------------------------------------------
           if [ -f assets/css/style.css ]; then
-            cp assets/css/style.css assets/css/style.css
+            echo "CSS already in place."
           elif [ -f assets/style.css ]; then
             cp assets/style.css assets/css/style.css
+            echo "Copied assets/style.css → assets/css/style.css"
           fi
 
       # -------------------------------------------------
@@ -90,7 +96,7 @@ jobs:
       - name: Generate HTML Pages (using echo)
         run: |
           set -euo pipefail
-          REPO="philadelphia.github.io"   # <-- repository name, used for correct URLs
+          REPO="philadelphia.github.io"   # repository name for correct URLs
 
           generate_html() {
             local lang=$1
@@ -105,7 +111,6 @@ jobs:
               echo '<head>'
               echo '  <meta charset="UTF-8"/>'
               echo "  <title>$title</title>"
-              # CSS path now includes the repo name
               echo "  <link rel=\"stylesheet\" href=\"/${REPO}/assets/css/style.css\"/>"
               echo '</head>'
               echo '<body>'
@@ -117,7 +122,6 @@ jobs:
                 [ -e "$file" ] || continue
                 fname=$(basename "$file")
                 thumb="/${REPO}/assets/thumbs/$lang/$cat/${fname%.pdf}.png"
-                # PDF link also includes the repo name
                 echo "<a href=\"/${REPO}/$lang/$cat/$fname\" class=\"icon\" download><img src=\"$thumb\" alt=\"$fname\"/><span>$fname</span></a>"
               done
 
