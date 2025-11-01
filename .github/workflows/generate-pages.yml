@@ -5,9 +5,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# The default GITHUB_TOKEN already has the needed scopes, but we keep the
+# explicit permissions block for clarity.
 permissions:
-  contents: write      # commit generated files
-  pages: write        # publish to GitHub Pages
+  contents: write      # needed for the commit that adds the generated files
+  pages: write        # needed for the deploy‑pages action
   id-token: write
 
 concurrency:
@@ -15,13 +17,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # -------------------------------------------------
-  # 1️⃣  Build thumbnails & HTML pages
-  # -------------------------------------------------
   generate:
     runs-on: ubuntu-latest
     outputs:
-      artifact-name: ${{ steps.upload-artifact.outputs.artifact-name }}
+      artifact-path: ${{ steps.set-artifact-path.outputs.path }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -31,15 +30,20 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Install dependencies & create dirs
+      - name: Install system deps
         run: |
           sudo apt-get update && sudo apt-get install -y imagemagick ghostscript
-          mkdir -p assets/thumbs/zh-{hant,hans}/{shuiling,bible,poetry,devotional}
 
-      - name: Generate PDF Thumbnails
+      - name: Create thumbnail directories
         run: |
-          generate_thumbnails() {
-            src=$1 dst=$2
+          mkdir -p assets/thumbs/zh-hant/{shuiling,bible,poetry,devotional} \
+                   assets/thumbs/zh-hans/{shuiling,bible,poetry,devotional}
+
+      - name: Generate PDF thumbnails
+        run: |
+          generate_thumbnails () {
+            local src=$1
+            local dst=$2
             for f in "$src"/*.pdf; do
               [ -e "$f" ] || continue
               name=$(basename "$f" .pdf)
@@ -48,23 +52,24 @@ jobs:
           }
 
           generate_thumbnails zh-hant/shuiling assets/thumbs/zh-hant/shuiling
-          generate_thumbnails zh-hant/bible   assets/thumbs/zh-hant/bible
-          generate_thumbnails zh-hant/poetry  assets/thumbs/zh-hant/poetry
+          generate_thumbnails zh-hant/bible    assets/thumbs/zh-hant/bible
+          generate_thumbnails zh-hant/poetry   assets/thumbs/zh-hant/poetry
           generate_thumbnails zh-hant/devotional assets/thumbs/zh-hant/devotional
 
           generate_thumbnails zh-hans/shuiling assets/thumbs/zh-hans/shuiling
-          generate_thumbnails zh-hans/bible   assets/thumbs/zh-hans/bible
-          generate_thumbnails zh-hans/poetry  assets/thumbs/zh-hans/poetry
+          generate_thumbnails zh-hans/bible    assets/thumbs/zh-hans/bible
+          generate_thumbnails zh-hans/poetry   assets/thumbs/zh-hans/poetry
           generate_thumbnails zh-hans/devotional assets/thumbs/zh-hans/devotional
 
-      - name: Generate HTML Pages
+      - name: Generate HTML pages
         run: |
-          generate_html() {
-            lang=$1 cat=$2 title=$3
+          generate_html () {
+            local lang=$1
+            local cat=$2
+            local title=$3
             mkdir -p "$lang/$cat"
 
-            # ---- start of heredoc (must be left‑aligned) ----
-cat > "$lang/$cat/index.html" <<EOF
+            cat > "$lang/$cat/index.html" <<EOF
 <!DOCTYPE html>
 <html lang="$lang">
 <head>
@@ -73,37 +78,41 @@ cat > "$lang/$cat/index.html" <<EOF
   <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 <body>
-<div class="container">
-  <h1>$title</h1>
-  <div class="icon-grid">
+  <div class="container">
+    <h1>$title</h1>
+    <div class="icon-grid">
 EOF
-            # ---- end of static part ----
 
             for f in "$lang/$cat"/*.pdf; do
               [ -e "$f" ] || continue
               name=$(basename "$f")
               thumb="../../assets/thumbs/$lang/$cat/${name%.pdf}.png"
-              echo "<a href=\"$name\" class=\"icon\" download><img src=\"$thumb\" alt=\"$name\"/><span>$name</span></a>" >> "$lang/$cat/index.html"
+              cat >> "$lang/$cat/index.html" <<HTML
+<a href="$name" class="icon" download>
+  <img src="$thumb" alt="$name"/>
+  <span>$name</span>
+</a>
+HTML
             done
 
             cat >> "$lang/$cat/index.html" <<EOF
+    </div>
   </div>
-</div>
 </body>
 </html>
 EOF
           }
 
           generate_html zh-hant shuiling "屬靈書"
-          generate_html zh-hant bible   "聖經難字粵音"
-          generate_html zh-hant poetry  "詩歌"
+          generate_html zh-hant bible    "聖經難字粵音"
+          generate_html zh-hant poetry   "詩歌"
           generate_html zh-hant devotional "靈修資料"
 
           generate_html zh-hans shuiling "属灵书"
-          generate_html zh-hans bible   "圣经难字粤音"
-          generate_html zh-hans poetry  "诗歌"
+          generate_html zh-hans bible    "圣经难字粤音"
+          generate_html zh-hans poetry   "诗歌"
           generate_html zh-hans devotional "灵修资料"
-          
+
       - name: Commit generated files
         run: |
           git config --local user.email "action@github.com"
@@ -112,42 +121,35 @@ EOF
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Auto‑generate pages & thumbnails"
+            git commit -m "Auto‑generate pages and thumbnails"
             git push
           fi
 
-      - name: Upload site artifact
-        id: upload-artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: site
-          path: .
-          retention-days: 1
+      - name: Set artifact path output
+        id: set-artifact-path
+        run: echo "path=." >> $GITHUB_OUTPUT
 
-  # -------------------------------------------------
-  # 2️⃣  Deploy the artifact to GitHub Pages
-  # -------------------------------------------------
   deploy:
     needs: generate
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - name: Download site artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: site
-          path: site   # everything placed under ./site
+      - name: Checkout repository (needed for the upload‑pages‑artifact action)
+        uses: actions/checkout@v3
 
-      - name: Setup Pages
+      - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload Pages artifact
+      - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site   # folder containing the generated site
+          # Only the generated static files are needed.  The path “.” works
+          # because the previous job already committed the generated files to the
+          # repo, but you could also limit it to a sub‑folder if you prefer.
+          path: .
 
       - name: Deploy to GitHub Pages
-        id: deployment
+        id: deploy
         uses: actions/deploy-pages@v4
-
-      - name: Show deployment URL
-        run: echo "✅ Deployed to ${{ steps.deployment.outputs.page_url }}"
