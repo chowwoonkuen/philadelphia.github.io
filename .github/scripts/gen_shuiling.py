@@ -63,6 +63,8 @@ html = f'''<!DOCTYPE html>
       background: var(--surf2);
       opacity: 0;
       transition: opacity .3s;
+      pointer-events: none;
+      -webkit-user-drag: none;
     }}
     .book-thumb.loaded {{ opacity: 1; }}
     .book-info {{
