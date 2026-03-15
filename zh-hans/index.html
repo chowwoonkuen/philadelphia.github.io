@@ -1,18 +1,41 @@
 <!DOCTYPE html>
 <html lang="zh-Hans">
 <head>
-  <meta charset="UTF-8" />
-  <title>简页</title>
-  <link rel="stylesheet" href="../assets/css/style.css" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>非拉铁非书简 — 简体</title>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <style>
+    .nav-grid { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+    .nav-card { min-height: 130px; }
+    .nc-icon { font-size: 1.8rem; margin-bottom: .5rem; }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>简页</h1>
-    <div class="icon-grid">
-      <a href="shuiling/index.html" class="icon">属灵书</a>
-      <a href="bible/index.html" class="icon">圣经难字粤音</a>
-      <a href="poetry/index.html" class="icon">诗歌</a>
-      <a href="devotional/index.html" class="icon">灵修资料</a>
+  <div class="page">
+    <a href="../index.html" class="back">非拉铁非书简</a>
+    <h1 class="sec-title">简体中文</h1>
+    <div class="nav-grid">
+      <a href="shuiling/index.html" class="nav-card">
+        <span class="nc-icon">📖</span>
+        <span class="nc-label">属灵书</span>
+        <span class="nc-sub">灵修读物</span>
+      </a>
+      <a href="bible/index.html" class="nav-card">
+        <span class="nc-icon">✝</span>
+        <span class="nc-label">圣经难字粤音</span>
+        <span class="nc-sub">66卷</span>
+      </a>
+      <a href="devotional/index.html" class="nav-card">
+        <span class="nc-icon">🗓</span>
+        <span class="nc-label">灵修资料</span>
+        <span class="nc-sub">每日灵修 366天</span>
+      </a>
+      <a href="poetry/index.html" class="nav-card">
+        <span class="nc-icon">🎵</span>
+        <span class="nc-label">诗歌</span>
+        <span class="nc-sub">聆听与阅读</span>
+      </a>
     </div>
   </div>
 </body>
