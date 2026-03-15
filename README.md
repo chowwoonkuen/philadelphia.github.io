@@ -2,6 +2,7 @@
 
 Static GitHub Pages site serving Chinese-language Christian resources.  
 **Live site:** https://chowwoonkuen.github.io/philadelphia.github.io/
+This README is for the owner of this repository and forks only.
 
 ---
 
