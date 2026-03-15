@@ -1,17 +1,77 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>非拉鐵非書簡</title>
-  <link rel="stylesheet" href="assets/css/style.css" />
+  <link rel="stylesheet" href="assets/css/style.css"/>
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .root-wrap { text-align: center; padding: 2rem 1rem; }
+    .site-title {
+      font-family: var(--font-s);
+      font-size: clamp(2rem, 6vw, 3.2rem);
+      font-weight: 700;
+      color: var(--gold-text);
+      letter-spacing: .12em;
+      margin-bottom: .5rem;
+    }
+    .site-sub {
+      font-size: .95rem;
+      color: var(--text2);
+      letter-spacing: .06em;
+      margin-bottom: 3.5rem;
+    }
+    .lang-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+    .lang-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 130px;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      text-decoration: none;
+      transition: all .3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .lang-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--gold-dim) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .lang-card:hover { border-color: var(--gold-dim); transform: translateY(-3px); box-shadow: var(--shadow); }
+    .lang-card:hover::before { opacity: .15; }
+    .lang-char { font-family: var(--font-s); font-size: 2.6rem; font-weight: 700; color: var(--gold-text); position: relative; }
+    .lang-name { font-size: .8rem; color: var(--text2); margin-top: .35rem; position: relative; }
+    .divider { width: 40px; height: 1px; background: var(--border); margin: 0 auto 2.5rem; }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>非拉鐵非書簡</h1>
-    <div class="icon-grid">
-      <a href="zh-hant/index.html" class="icon">繁</a>
-      <a href="zh-hans/index.html" class="icon">簡</a>
+  <div class="root-wrap">
+    <h1 class="site-title">非拉鐵非書簡</h1>
+    <p class="site-sub">Books of Philadelphia</p>
+    <div class="divider"></div>
+    <div class="lang-grid">
+      <a href="zh-hant/index.html" class="lang-card">
+        <span class="lang-char">繁</span>
+        <span class="lang-name">繁體中文</span>
+      </a>
+      <a href="zh-hans/index.html" class="lang-card">
+        <span class="lang-char">簡</span>
+        <span class="lang-name">简体中文</span>
+      </a>
     </div>
   </div>
 </body>
