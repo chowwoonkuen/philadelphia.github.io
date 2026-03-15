@@ -53,7 +53,6 @@ jobs:
           done
           mkdir -p assets/css
 
-      # Full first-page thumbnail, no cropping, white background, 320px wide
       - name: Generate shuiling thumbnails
         run: |
           for lang in zh-hant zh-hans; do
@@ -71,14 +70,22 @@ jobs:
 
       - name: Generate all section pages
         run: |
-          python3 .github/scripts/gen_shuiling.py   zh-hant "$REPO" "屬靈書"       "繁體中文"
-          python3 .github/scripts/gen_shuiling.py   zh-hans "$REPO" "属灵书"       "简体中文"
-          python3 .github/scripts/gen_bible.py      zh-hant "$REPO" "聖經難字粵音" "繁體中文"
-          python3 .github/scripts/gen_bible.py      zh-hans "$REPO" "圣经难字粤音" "简体中文"
-          python3 .github/scripts/gen_devotional.py zh-hant "$REPO" "靈修資料"     "繁體中文"
-          python3 .github/scripts/gen_devotional.py zh-hans "$REPO" "灵修资料"     "简体中文"
-          python3 .github/scripts/gen_poetry.py     zh-hant "$REPO" "詩歌"         "繁體中文"
-          python3 .github/scripts/gen_poetry.py     zh-hans "$REPO" "诗歌"         "简体中文"
+          VER="${{ github.sha }}"
+          python3 .github/scripts/gen_shuiling.py   zh-hant "$REPO" "屬靈書"       "繁體中文" "$VER"
+          python3 .github/scripts/gen_shuiling.py   zh-hans "$REPO" "属灵书"       "简体中文" "$VER"
+          python3 .github/scripts/gen_bible.py      zh-hant "$REPO" "聖經難字粵音" "繁體中文" "$VER"
+          python3 .github/scripts/gen_bible.py      zh-hans "$REPO" "圣经难字粤音" "简体中文" "$VER"
+          python3 .github/scripts/gen_devotional.py zh-hant "$REPO" "靈修資料"     "繁體中文" "$VER"
+          python3 .github/scripts/gen_devotional.py zh-hans "$REPO" "灵修资料"     "简体中文" "$VER"
+          python3 .github/scripts/gen_poetry.py     zh-hant "$REPO" "詩歌"         "繁體中文" "$VER"
+          python3 .github/scripts/gen_poetry.py     zh-hans "$REPO" "诗歌"         "简体中文" "$VER"
+
+      - name: Bust cache in static HTML pages
+        run: |
+          VER="${{ github.sha }}"
+          find . -name "index.html" \
+            -not -path "./.git/*" \
+            -exec sed -i "s|style\.css[^\"]*|style.css?v=$VER|g" {} +
 
       - name: Commit generated files
         run: |
