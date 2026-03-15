@@ -2,74 +2,1182 @@
 <html lang="zh-hant">
 <head>
   <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>屬靈書</title>
   <link rel="stylesheet" href="/philadelphia.github.io/assets/css/style.css"/>
+  <style>
+    .lib-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 1.5rem;
+    }
+    .book-card {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow);
+      transition: all .22s;
+    }
+    .book-card:hover {
+      border-color: var(--gold-lt);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+    /* Skeleton placeholder — shown until image loads */
+    .thumb-wrap {
+      width: 100%;
+      aspect-ratio: 1 / 1.414;
+      position: relative;
+      overflow: hidden;
+      background: var(--surf2);
+    }
+    .thumb-wrap .skeleton {
+      position: absolute;
+      inset: 0;
+      border-radius: 0;
+    }
+    .book-thumb {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: var(--surf2);
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .book-thumb.loaded { opacity: 1; }
+    .book-info {
+      padding: .85rem;
+      display: flex;
+      flex-direction: column;
+      gap: .65rem;
+      flex: 1;
+    }
+    .book-name {
+      font-family: var(--font-s);
+      font-size: .8rem;
+      color: var(--text);
+      line-height: 1.5;
+      word-break: break-word;
+    }
+    .book-actions {
+      display: flex;
+      gap: .5rem;
+      margin-top: auto;
+    }
+    .book-actions .btn { flex: 1; font-size: .78rem; padding: .45rem .4rem; }
+    @media (max-width: 480px) {
+      .lib-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>屬靈書</h1>
-    <div class="icon-grid">
-<a href="/philadelphia.github.io/zh-hant/shuiling/01 The Drummer Boys Prayer by M L Rossvally鼓手男孩的祈禱羅斯華里著.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/01 The Drummer Boys Prayer by M L Rossvally鼓手男孩的祈禱羅斯華里著.png" alt="01 The Drummer Boys Prayer by M L Rossvally鼓手男孩的祈禱羅斯華里著.pdf"/><span>01 The Drummer Boys Prayer by M L Rossvally鼓手男孩的祈禱羅斯華里著.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/02 Born Again重生真義.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/02 Born Again重生真義.png" alt="02 Born Again重生真義.pdf"/><span>02 Born Again重生真義.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/03 The Calvary Road by Roy Hession加略山路來渴神著.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/03 The Calvary Road by Roy Hession加略山路來渴神著.png" alt="03 The Calvary Road by Roy Hession加略山路來渴神著.pdf"/><span>03 The Calvary Road by Roy Hession加略山路來渴神著.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/04 Victory in Christ by Charles G Trumbull在基督裏得勝湛布著.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/04 Victory in Christ by Charles G Trumbull在基督裏得勝湛布著.png" alt="04 Victory in Christ by Charles G Trumbull在基督裏得勝湛布著.pdf"/><span>04 Victory in Christ by Charles G Trumbull在基督裏得勝湛布著.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/05 The Greatest Thing in the World by Henry Drummond世上最大的亨利箴文著.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/05 The Greatest Thing in the World by Henry Drummond世上最大的亨利箴文著.png" alt="05 The Greatest Thing in the World by Henry Drummond世上最大的亨利箴文著.pdf"/><span>05 The Greatest Thing in the World by Henry Drummond世上最大的亨利箴文著.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/06 A Faithful Narrative of the Surprising Work of God by Jonathan Edwards大復興愛德華茲著.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/06 A Faithful Narrative of the Surprising Work of God by Jonathan Edwards大復興愛德華茲著.png" alt="06 A Faithful Narrative of the Surprising Work of God by Jonathan Edwards大復興愛德華茲著.pdf"/><span>06 A Faithful Narrative of the Surprising Work of God by Jonathan Edwards大復興愛德華茲著.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/07 Hosea the Heart and Holiness of God by Campbell Morgan何西阿書神的心與聖潔.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/07 Hosea the Heart and Holiness of God by Campbell Morgan何西阿書神的心與聖潔.png" alt="07 Hosea the Heart and Holiness of God by Campbell Morgan何西阿書神的心與聖潔.pdf"/><span>07 Hosea the Heart and Holiness of God by Campbell Morgan何西阿書神的心與聖潔.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/08 Guidance by Oliver R Barclay神的引導百其利著.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/08 Guidance by Oliver R Barclay神的引導百其利著.png" alt="08 Guidance by Oliver R Barclay神的引導百其利著.pdf"/><span>08 Guidance by Oliver R Barclay神的引導百其利著.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/09 Christian Living by F B Meyer 基督徒的生命活現邁爾著.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/09 Christian Living by F B Meyer 基督徒的生命活現邁爾著.png" alt="09 Christian Living by F B Meyer 基督徒的生命活現邁爾著.pdf"/><span>09 Christian Living by F B Meyer 基督徒的生命活現邁爾著.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/10 The Lessons of Love by J R Miller學習愛米勒.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/10 The Lessons of Love by J R Miller學習愛米勒.png" alt="10 The Lessons of Love by J R Miller學習愛米勒.pdf"/><span>10 The Lessons of Love by J R Miller學習愛米勒.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/11 Darby's Bible Synopsis Gospel of John Chapter 3 達秘釋經約翰福音第三章.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/11 Darby's Bible Synopsis Gospel of John Chapter 3 達秘釋經約翰福音第三章.png" alt="11 Darby's Bible Synopsis Gospel of John Chapter 3 達秘釋經約翰福音第三章.pdf"/><span>11 Darby's Bible Synopsis Gospel of John Chapter 3 達秘釋經約翰福音第三章.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/12 Faith on Trial by Martin Lloyds Jone試煉中的信心鍾馬田.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/12 Faith on Trial by Martin Lloyds Jone試煉中的信心鍾馬田.png" alt="12 Faith on Trial by Martin Lloyds Jone試煉中的信心鍾馬田.pdf"/><span>12 Faith on Trial by Martin Lloyds Jone試煉中的信心鍾馬田.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/13 How to Pray by R A Torrey如何禱告叨雷.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/13 How to Pray by R A Torrey如何禱告叨雷.png" alt="13 How to Pray by R A Torrey如何禱告叨雷.pdf"/><span>13 How to Pray by R A Torrey如何禱告叨雷.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/14A Streams in the Desert by LB Cowman荒漠甘泉上考門夫人.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/14A Streams in the Desert by LB Cowman荒漠甘泉上考門夫人.png" alt="14A Streams in the Desert by LB Cowman荒漠甘泉上考門夫人.pdf"/><span>14A Streams in the Desert by LB Cowman荒漠甘泉上考門夫人.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/14B Streams in the Desert 2 by LB Cowman 荒漠甘泉下考門夫人.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/14B Streams in the Desert 2 by LB Cowman 荒漠甘泉下考門夫人.png" alt="14B Streams in the Desert 2 by LB Cowman 荒漠甘泉下考門夫人.pdf"/><span>14B Streams in the Desert 2 by LB Cowman 荒漠甘泉下考門夫人.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/15 The Work of the Holy Spirit Penn Lewis聖靈的工作賓路易師母.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/15 The Work of the Holy Spirit Penn Lewis聖靈的工作賓路易師母.png" alt="15 The Work of the Holy Spirit Penn Lewis聖靈的工作賓路易師母.pdf"/><span>15 The Work of the Holy Spirit Penn Lewis聖靈的工作賓路易師母.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/16 The True Vine by Andrew Murray真葡萄樹慕安德烈.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/16 The True Vine by Andrew Murray真葡萄樹慕安德烈.png" alt="16 The True Vine by Andrew Murray真葡萄樹慕安德烈.pdf"/><span>16 The True Vine by Andrew Murray真葡萄樹慕安德烈.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/17 Abide Above by Miles J Stanford高居天上史丹福.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/17 Abide Above by Miles J Stanford高居天上史丹福.png" alt="17 Abide Above by Miles J Stanford高居天上史丹福.pdf"/><span>17 Abide Above by Miles J Stanford高居天上史丹福.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/18 Rightly Dividing the Word of Truths by C I Scofield正意分解真理的道司可福.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/18 Rightly Dividing the Word of Truths by C I Scofield正意分解真理的道司可福.png" alt="18 Rightly Dividing the Word of Truths by C I Scofield正意分解真理的道司可福.pdf"/><span>18 Rightly Dividing the Word of Truths by C I Scofield正意分解真理的道司可福.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/19 The Green Letters Principles of Spiritual Growth by Miles J Stanford青葱書信史丹福.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/19 The Green Letters Principles of Spiritual Growth by Miles J Stanford青葱書信史丹福.png" alt="19 The Green Letters Principles of Spiritual Growth by Miles J Stanford青葱書信史丹福.pdf"/><span>19 The Green Letters Principles of Spiritual Growth by Miles J Stanford青葱書信史丹福.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/20 Life Out of Death by Madame Guyon出死入生蓋恩夫人.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/20 Life Out of Death by Madame Guyon出死入生蓋恩夫人.png" alt="20 Life Out of Death by Madame Guyon出死入生蓋恩夫人.pdf"/><span>20 Life Out of Death by Madame Guyon出死入生蓋恩夫人.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/21 The Spirit of Christ by Andrew Murray基督的靈慕安德烈.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/21 The Spirit of Christ by Andrew Murray基督的靈慕安德烈.png" alt="21 The Spirit of Christ by Andrew Murray基督的靈慕安德烈.pdf"/><span>21 The Spirit of Christ by Andrew Murray基督的靈慕安德烈.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/22 What is Man by T Austin-Sparks人算甚麼史百克.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/22 What is Man by T Austin-Sparks人算甚麼史百克.png" alt="22 What is Man by T Austin-Sparks人算甚麼史百克.pdf"/><span>22 What is Man by T Austin-Sparks人算甚麼史百克.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/23 Sailing with Paul by Harry Ironside與保羅同航艾朗西.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/23 Sailing with Paul by Harry Ironside與保羅同航艾朗西.png" alt="23 Sailing with Paul by Harry Ironside與保羅同航艾朗西.pdf"/><span>23 Sailing with Paul by Harry Ironside與保羅同航艾朗西.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/24 God's Salvation by John Fort神的救恩約翰霍池.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/24 God's Salvation by John Fort神的救恩約翰霍池.png" alt="24 God's Salvation by John Fort神的救恩約翰霍池.pdf"/><span>24 God's Salvation by John Fort神的救恩約翰霍池.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/25 His Side Versus Our Side by Norman Harrison神這邊對我們那裏羅文夏里遜.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/25 His Side Versus Our Side by Norman Harrison神這邊對我們那裏羅文夏里遜.png" alt="25 His Side Versus Our Side by Norman Harrison神這邊對我們那裏羅文夏里遜.pdf"/><span>25 His Side Versus Our Side by Norman Harrison神這邊對我們那裏羅文夏里遜.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/26 A Sure Guide to Heaven by Joseph Alleine上天堂的確實指引約瑟亞倫.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/26 A Sure Guide to Heaven by Joseph Alleine上天堂的確實指引約瑟亞倫.png" alt="26 A Sure Guide to Heaven by Joseph Alleine上天堂的確實指引約瑟亞倫.pdf"/><span>26 A Sure Guide to Heaven by Joseph Alleine上天堂的確實指引約瑟亞倫.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/27 Dying to Live by Jessie Penn-Lewis務死得生賓路易夫人.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/27 Dying to Live by Jessie Penn-Lewis務死得生賓路易夫人.png" alt="27 Dying to Live by Jessie Penn-Lewis務死得生賓路易夫人.pdf"/><span>27 Dying to Live by Jessie Penn-Lewis務死得生賓路易夫人.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/28晨更柝聲.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/28晨更柝聲.png" alt="28晨更柝聲.pdf"/><span>28晨更柝聲.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/29 Born Crucified by LE Maxwell 釘死得生LE麥斯威爾.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/29 Born Crucified by LE Maxwell 釘死得生LE麥斯威爾.png" alt="29 Born Crucified by LE Maxwell 釘死得生LE麥斯威爾.pdf"/><span>29 Born Crucified by LE Maxwell 釘死得生LE麥斯威爾.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/30 The Secret of Guidance by F B Meyer引導的訣要邁爾.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/30 The Secret of Guidance by F B Meyer引導的訣要邁爾.png" alt="30 The Secret of Guidance by F B Meyer引導的訣要邁爾.pdf"/><span>30 The Secret of Guidance by F B Meyer引導的訣要邁爾.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/31 The Law of Liberty in the Spiritual Life by Evan Hopkins屬靈生命中釋放之律伊雲鶴健士.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/31 The Law of Liberty in the Spiritual Life by Evan Hopkins屬靈生命中釋放之律伊雲鶴健士.png" alt="31 The Law of Liberty in the Spiritual Life by Evan Hopkins屬靈生命中釋放之律伊雲鶴健士.pdf"/><span>31 The Law of Liberty in the Spiritual Life by Evan Hopkins屬靈生命中釋放之律伊雲鶴健士.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/32 Operation of the Spriit of God by John Nelson Darby 神聖靈的運行達秘.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/32 Operation of the Spriit of God by John Nelson Darby 神聖靈的運行達秘.png" alt="32 Operation of the Spriit of God by John Nelson Darby 神聖靈的運行達秘.pdf"/><span>32 Operation of the Spriit of God by John Nelson Darby 神聖靈的運行達秘.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/33 The Master's Indwelling by Andrew Murray主的內住慕安德烈.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/33 The Master's Indwelling by Andrew Murray主的內住慕安德烈.png" alt="33 The Master's Indwelling by Andrew Murray主的內住慕安德烈.pdf"/><span>33 The Master's Indwelling by Andrew Murray主的內住慕安德烈.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/34 The Glorious Filling Of The Holy Spirit by Andrew Murray聖靈的榮耀充滿慕安德烈.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/34 The Glorious Filling Of The Holy Spirit by Andrew Murray聖靈的榮耀充滿慕安德烈.png" alt="34 The Glorious Filling Of The Holy Spirit by Andrew Murray聖靈的榮耀充滿慕安德烈.pdf"/><span>34 The Glorious Filling Of The Holy Spirit by Andrew Murray聖靈的榮耀充滿慕安德烈.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/35 Lectures on the Epistle to the Galatians by W Kelly加拉太書講義基利.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/35 Lectures on the Epistle to the Galatians by W Kelly加拉太書講義基利.png" alt="35 Lectures on the Epistle to the Galatians by W Kelly加拉太書講義基利.pdf"/><span>35 Lectures on the Epistle to the Galatians by W Kelly加拉太書講義基利.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/36 Bone Of His Bone by F J Huegel祂骨中的骨F J 華高.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/36 Bone Of His Bone by F J Huegel祂骨中的骨F J 華高.png" alt="36 Bone Of His Bone by F J Huegel祂骨中的骨F J 華高.pdf"/><span>36 Bone Of His Bone by F J Huegel祂骨中的骨F J 華高.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/37 Absolute Surrender by Andrew Murray全然交付慕安德烈.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/37 Absolute Surrender by Andrew Murray全然交付慕安德烈.png" alt="37 Absolute Surrender by Andrew Murray全然交付慕安德烈.pdf"/><span>37 Absolute Surrender by Andrew Murray全然交付慕安德烈.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/38 The Centrality of the Cross by Jessie Penn-Lewis十架居中賓路易夫人.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/38 The Centrality of the Cross by Jessie Penn-Lewis十架居中賓路易夫人.png" alt="38 The Centrality of the Cross by Jessie Penn-Lewis十架居中賓路易夫人.pdf"/><span>38 The Centrality of the Cross by Jessie Penn-Lewis十架居中賓路易夫人.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/39 Pleasure and Profit in Bible Study by Dwight Moody讀經的樂趣和益處慕廸.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/39 Pleasure and Profit in Bible Study by Dwight Moody讀經的樂趣和益處慕廸.png" alt="39 Pleasure and Profit in Bible Study by Dwight Moody讀經的樂趣和益處慕廸.pdf"/><span>39 Pleasure and Profit in Bible Study by Dwight Moody讀經的樂趣和益處慕廸.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/40 The Inner Chamber and the Inner Life by Andrew Murray內室與內裏的生命慕安德烈.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/40 The Inner Chamber and the Inner Life by Andrew Murray內室與內裏的生命慕安德烈.png" alt="40 The Inner Chamber and the Inner Life by Andrew Murray內室與內裏的生命慕安德烈.pdf"/><span>40 The Inner Chamber and the Inner Life by Andrew Murray內室與內裏的生命慕安德烈.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/41 George Muller and the Secret of His Power in Prayer by Andrew Murray喬治慕勒禱告能力的訣要慕安德烈.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/41 George Muller and the Secret of His Power in Prayer by Andrew Murray喬治慕勒禱告能力的訣要慕安德烈.png" alt="41 George Muller and the Secret of His Power in Prayer by Andrew Murray喬治慕勒禱告能力的訣要慕安德烈.pdf"/><span>41 George Muller and the Secret of His Power in Prayer by Andrew Murray喬治慕勒禱告能力的訣要慕安德烈.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/42 The New Life by Captain Reginald Wallis新生命利珍諾華里士.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/42 The New Life by Captain Reginald Wallis新生命利珍諾華里士.png" alt="42 The New Life by Captain Reginald Wallis新生命利珍諾華里士.pdf"/><span>42 The New Life by Captain Reginald Wallis新生命利珍諾華里士.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/43 George Muller Man of Faith by Charles R Parsons信心偉人喬治慕勒查理士帕信.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/43 George Muller Man of Faith by Charles R Parsons信心偉人喬治慕勒查理士帕信.png" alt="43 George Muller Man of Faith by Charles R Parsons信心偉人喬治慕勒查理士帕信.pdf"/><span>43 George Muller Man of Faith by Charles R Parsons信心偉人喬治慕勒查理士帕信.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/44 The Kneeling Christian跪着的基督徒.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/44 The Kneeling Christian跪着的基督徒.png" alt="44 The Kneeling Christian跪着的基督徒.pdf"/><span>44 The Kneeling Christian跪着的基督徒.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/45 Samuel Morris Compiled by James Meletious毛三勉.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/45 Samuel Morris Compiled by James Meletious毛三勉.png" alt="45 Samuel Morris Compiled by James Meletious毛三勉.pdf"/><span>45 Samuel Morris Compiled by James Meletious毛三勉.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/46 The Prayer Life by Andrew Murray祈禱的生活慕安德烈.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/46 The Prayer Life by Andrew Murray祈禱的生活慕安德烈.png" alt="46 The Prayer Life by Andrew Murray祈禱的生活慕安德烈.pdf"/><span>46 The Prayer Life by Andrew Murray祈禱的生活慕安德烈.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/47 The Path of Prayer by Samuel Chadwick禱告之路撒母耳察域.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/47 The Path of Prayer by Samuel Chadwick禱告之路撒母耳察域.png" alt="47 The Path of Prayer by Samuel Chadwick禱告之路撒母耳察域.pdf"/><span>47 The Path of Prayer by Samuel Chadwick禱告之路撒母耳察域.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/48 Fundamental Questions of the Christian Life by T Austin-Sparks基督徒生命的基本問題.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/48 Fundamental Questions of the Christian Life by T Austin-Sparks基督徒生命的基本問題.png" alt="48 Fundamental Questions of the Christian Life by T Austin-Sparks基督徒生命的基本問題.pdf"/><span>48 Fundamental Questions of the Christian Life by T Austin-Sparks基督徒生命的基本問題.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/49 The All-Sufficiency of Christ by Charles Henry Mackintosh基督的全足全豐查理麥景陶.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/49 The All-Sufficiency of Christ by Charles Henry Mackintosh基督的全足全豐查理麥景陶.png" alt="49 The All-Sufficiency of Christ by Charles Henry Mackintosh基督的全足全豐查理麥景陶.pdf"/><span>49 The All-Sufficiency of Christ by Charles Henry Mackintosh基督的全足全豐查理麥景陶.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/50 Glad Tidings by Charles Henry Mackintosh大喜的信息麥景陶.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/50 Glad Tidings by Charles Henry Mackintosh大喜的信息麥景陶.png" alt="50 Glad Tidings by Charles Henry Mackintosh大喜的信息麥景陶.pdf"/><span>50 Glad Tidings by Charles Henry Mackintosh大喜的信息麥景陶.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/51 Person and work of the Holy Spirit by Samuel Ridout聖靈的位格和工作撒母耳利都.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/51 Person and work of the Holy Spirit by Samuel Ridout聖靈的位格和工作撒母耳利都.png" alt="51 Person and work of the Holy Spirit by Samuel Ridout聖靈的位格和工作撒母耳利都.pdf"/><span>51 Person and work of the Holy Spirit by Samuel Ridout聖靈的位格和工作撒母耳利都.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/52 The Church and its Order According to Scripture by Samuel Ridout教會和合乎聖經的規矩撒母耳利都.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/52 The Church and its Order According to Scripture by Samuel Ridout教會和合乎聖經的規矩撒母耳利都.png" alt="52 The Church and its Order According to Scripture by Samuel Ridout教會和合乎聖經的規矩撒母耳利都.pdf"/><span>52 The Church and its Order According to Scripture by Samuel Ridout教會和合乎聖經的規矩撒母耳利都.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/53 Prayer and the Prayer Meeting by Charles Henry Mackintosh祈禱和祈禱會查理士亨利麥景陶.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/53 Prayer and the Prayer Meeting by Charles Henry Mackintosh祈禱和祈禱會查理士亨利麥景陶.png" alt="53 Prayer and the Prayer Meeting by Charles Henry Mackintosh祈禱和祈禱會查理士亨利麥景陶.pdf"/><span>53 Prayer and the Prayer Meeting by Charles Henry Mackintosh祈禱和祈禱會查理士亨利麥景陶.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/54 The Lord's Coming, Israel, and the Church by Thomas Blackburn Baines主的再來以色列和教會班尼斯.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/54 The Lord's Coming, Israel, and the Church by Thomas Blackburn Baines主的再來以色列和教會班尼斯.png" alt="54 The Lord's Coming, Israel, and the Church by Thomas Blackburn Baines主的再來以色列和教會班尼斯.pdf"/><span>54 The Lord's Coming, Israel, and the Church by Thomas Blackburn Baines主的再來以色列和教會班尼斯.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/55 Face to Face by Jessie Penn-Lewis面對面賓路易夫人.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/55 Face to Face by Jessie Penn-Lewis面對面賓路易夫人.png" alt="55 Face to Face by Jessie Penn-Lewis面對面賓路易夫人.pdf"/><span>55 Face to Face by Jessie Penn-Lewis面對面賓路易夫人.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/56 Every-Member Evangelism by J E Conant人人傳福音J E 高倫.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/56 Every-Member Evangelism by J E Conant人人傳福音J E 高倫.png" alt="56 Every-Member Evangelism by J E Conant人人傳福音J E 高倫.pdf"/><span>56 Every-Member Evangelism by J E Conant人人傳福音J E 高倫.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/57 Abide in Christ by Andrew Murray住在基督裏慕安德烈.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/57 Abide in Christ by Andrew Murray住在基督裏慕安德烈.png" alt="57 Abide in Christ by Andrew Murray住在基督裏慕安德烈.pdf"/><span>57 Abide in Christ by Andrew Murray住在基督裏慕安德烈.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/58 The New Life by Andrew Murray新生命慕安德烈.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/58 The New Life by Andrew Murray新生命慕安德烈.png" alt="58 The New Life by Andrew Murray新生命慕安德烈.pdf"/><span>58 The New Life by Andrew Murray新生命慕安德烈.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/59 Waiting On God by Andrew Murray等候神慕安德烈.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/59 Waiting On God by Andrew Murray等候神慕安德烈.png" alt="59 Waiting On God by Andrew Murray等候神慕安德烈.pdf"/><span>59 Waiting On God by Andrew Murray等候神慕安德烈.pdf</span></a>
-<a href="/philadelphia.github.io/zh-hant/shuiling/60 蒙恩德言.pdf" class="icon" download><img src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/60 蒙恩德言.png" alt="60 蒙恩德言.pdf"/><span>60 蒙恩德言.pdf</span></a>
+  <div class="page">
+    <a href="/philadelphia.github.io/zh-hant/index.html" class="back">繁體中文</a>
+    <h1 class="sec-title">屬靈書</h1>
+    <div class="lib-grid">
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/01 The Drummer Boys Prayer by M L Rossvally鼓手男孩的祈禱羅斯華里著.png"
+               alt="01 The Drummer Boys Prayer by M L Rossvally鼓手男孩的祈禱羅斯華里著"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">01 The Drummer Boys Prayer by M L Rossvally鼓手男孩的祈禱羅斯華里著</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/01 The Drummer Boys Prayer by M L Rossvally鼓手男孩的祈禱羅斯華里著.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/01 The Drummer Boys Prayer by M L Rossvally鼓手男孩的祈禱羅斯華里著.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/02 Born Again重生真義.png"
+               alt="02 Born Again重生真義"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">02 Born Again重生真義</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/02 Born Again重生真義.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/02 Born Again重生真義.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/03 The Calvary Road by Roy Hession加略山路來渴神著.png"
+               alt="03 The Calvary Road by Roy Hession加略山路來渴神著"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">03 The Calvary Road by Roy Hession加略山路來渴神著</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/03 The Calvary Road by Roy Hession加略山路來渴神著.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/03 The Calvary Road by Roy Hession加略山路來渴神著.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/04 Victory in Christ by Charles G Trumbull在基督裏得勝湛布著.png"
+               alt="04 Victory in Christ by Charles G Trumbull在基督裏得勝湛布著"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">04 Victory in Christ by Charles G Trumbull在基督裏得勝湛布著</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/04 Victory in Christ by Charles G Trumbull在基督裏得勝湛布著.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/04 Victory in Christ by Charles G Trumbull在基督裏得勝湛布著.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/05 The Greatest Thing in the World by Henry Drummond世上最大的亨利箴文著.png"
+               alt="05 The Greatest Thing in the World by Henry Drummond世上最大的亨利箴文著"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">05 The Greatest Thing in the World by Henry Drummond世上最大的亨利箴文著</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/05 The Greatest Thing in the World by Henry Drummond世上最大的亨利箴文著.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/05 The Greatest Thing in the World by Henry Drummond世上最大的亨利箴文著.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/06 A Faithful Narrative of the Surprising Work of God by Jonathan Edwards大復興愛德華茲著.png"
+               alt="06 A Faithful Narrative of the Surprising Work of God by Jonathan Edwards大復興愛德華茲著"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">06 A Faithful Narrative of the Surprising Work of God by Jonathan Edwards大復興愛德華茲著</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/06 A Faithful Narrative of the Surprising Work of God by Jonathan Edwards大復興愛德華茲著.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/06 A Faithful Narrative of the Surprising Work of God by Jonathan Edwards大復興愛德華茲著.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/07 Hosea the Heart and Holiness of God by Campbell Morgan何西阿書神的心與聖潔.png"
+               alt="07 Hosea the Heart and Holiness of God by Campbell Morgan何西阿書神的心與聖潔"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">07 Hosea the Heart and Holiness of God by Campbell Morgan何西阿書神的心與聖潔</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/07 Hosea the Heart and Holiness of God by Campbell Morgan何西阿書神的心與聖潔.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/07 Hosea the Heart and Holiness of God by Campbell Morgan何西阿書神的心與聖潔.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/08 Guidance by Oliver R Barclay神的引導百其利著.png"
+               alt="08 Guidance by Oliver R Barclay神的引導百其利著"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">08 Guidance by Oliver R Barclay神的引導百其利著</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/08 Guidance by Oliver R Barclay神的引導百其利著.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/08 Guidance by Oliver R Barclay神的引導百其利著.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/09 Christian Living by F B Meyer 基督徒的生命活現邁爾著.png"
+               alt="09 Christian Living by F B Meyer 基督徒的生命活現邁爾著"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">09 Christian Living by F B Meyer 基督徒的生命活現邁爾著</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/09 Christian Living by F B Meyer 基督徒的生命活現邁爾著.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/09 Christian Living by F B Meyer 基督徒的生命活現邁爾著.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/10 The Lessons of Love by J R Miller學習愛米勒.png"
+               alt="10 The Lessons of Love by J R Miller學習愛米勒"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">10 The Lessons of Love by J R Miller學習愛米勒</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/10 The Lessons of Love by J R Miller學習愛米勒.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/10 The Lessons of Love by J R Miller學習愛米勒.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/11 Darby's Bible Synopsis Gospel of John Chapter 3 達秘釋經約翰福音第三章.png"
+               alt="11 Darby's Bible Synopsis Gospel of John Chapter 3 達秘釋經約翰福音第三章"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">11 Darby's Bible Synopsis Gospel of John Chapter 3 達秘釋經約翰福音第三章</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/11 Darby's Bible Synopsis Gospel of John Chapter 3 達秘釋經約翰福音第三章.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/11 Darby's Bible Synopsis Gospel of John Chapter 3 達秘釋經約翰福音第三章.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/12 Faith on Trial by Martin Lloyds Jone試煉中的信心鍾馬田.png"
+               alt="12 Faith on Trial by Martin Lloyds Jone試煉中的信心鍾馬田"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">12 Faith on Trial by Martin Lloyds Jone試煉中的信心鍾馬田</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/12 Faith on Trial by Martin Lloyds Jone試煉中的信心鍾馬田.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/12 Faith on Trial by Martin Lloyds Jone試煉中的信心鍾馬田.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/13 How to Pray by R A Torrey如何禱告叨雷.png"
+               alt="13 How to Pray by R A Torrey如何禱告叨雷"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">13 How to Pray by R A Torrey如何禱告叨雷</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/13 How to Pray by R A Torrey如何禱告叨雷.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/13 How to Pray by R A Torrey如何禱告叨雷.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/14A Streams in the Desert by LB Cowman荒漠甘泉上考門夫人.png"
+               alt="14A Streams in the Desert by LB Cowman荒漠甘泉上考門夫人"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">14A Streams in the Desert by LB Cowman荒漠甘泉上考門夫人</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/14A Streams in the Desert by LB Cowman荒漠甘泉上考門夫人.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/14A Streams in the Desert by LB Cowman荒漠甘泉上考門夫人.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/14B Streams in the Desert 2 by LB Cowman 荒漠甘泉下考門夫人.png"
+               alt="14B Streams in the Desert 2 by LB Cowman 荒漠甘泉下考門夫人"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">14B Streams in the Desert 2 by LB Cowman 荒漠甘泉下考門夫人</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/14B Streams in the Desert 2 by LB Cowman 荒漠甘泉下考門夫人.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/14B Streams in the Desert 2 by LB Cowman 荒漠甘泉下考門夫人.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/15 The Work of the Holy Spirit Penn Lewis聖靈的工作賓路易師母.png"
+               alt="15 The Work of the Holy Spirit Penn Lewis聖靈的工作賓路易師母"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">15 The Work of the Holy Spirit Penn Lewis聖靈的工作賓路易師母</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/15 The Work of the Holy Spirit Penn Lewis聖靈的工作賓路易師母.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/15 The Work of the Holy Spirit Penn Lewis聖靈的工作賓路易師母.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/16 The True Vine by Andrew Murray真葡萄樹慕安德烈.png"
+               alt="16 The True Vine by Andrew Murray真葡萄樹慕安德烈"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">16 The True Vine by Andrew Murray真葡萄樹慕安德烈</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/16 The True Vine by Andrew Murray真葡萄樹慕安德烈.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/16 The True Vine by Andrew Murray真葡萄樹慕安德烈.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/17 Abide Above by Miles J Stanford高居天上史丹福.png"
+               alt="17 Abide Above by Miles J Stanford高居天上史丹福"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">17 Abide Above by Miles J Stanford高居天上史丹福</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/17 Abide Above by Miles J Stanford高居天上史丹福.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/17 Abide Above by Miles J Stanford高居天上史丹福.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/18 Rightly Dividing the Word of Truths by C I Scofield正意分解真理的道司可福.png"
+               alt="18 Rightly Dividing the Word of Truths by C I Scofield正意分解真理的道司可福"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">18 Rightly Dividing the Word of Truths by C I Scofield正意分解真理的道司可福</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/18 Rightly Dividing the Word of Truths by C I Scofield正意分解真理的道司可福.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/18 Rightly Dividing the Word of Truths by C I Scofield正意分解真理的道司可福.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/19 The Green Letters Principles of Spiritual Growth by Miles J Stanford青葱書信史丹福.png"
+               alt="19 The Green Letters Principles of Spiritual Growth by Miles J Stanford青葱書信史丹福"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">19 The Green Letters Principles of Spiritual Growth by Miles J Stanford青葱書信史丹福</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/19 The Green Letters Principles of Spiritual Growth by Miles J Stanford青葱書信史丹福.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/19 The Green Letters Principles of Spiritual Growth by Miles J Stanford青葱書信史丹福.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/20 Life Out of Death by Madame Guyon出死入生蓋恩夫人.png"
+               alt="20 Life Out of Death by Madame Guyon出死入生蓋恩夫人"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">20 Life Out of Death by Madame Guyon出死入生蓋恩夫人</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/20 Life Out of Death by Madame Guyon出死入生蓋恩夫人.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/20 Life Out of Death by Madame Guyon出死入生蓋恩夫人.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/21 The Spirit of Christ by Andrew Murray基督的靈慕安德烈.png"
+               alt="21 The Spirit of Christ by Andrew Murray基督的靈慕安德烈"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">21 The Spirit of Christ by Andrew Murray基督的靈慕安德烈</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/21 The Spirit of Christ by Andrew Murray基督的靈慕安德烈.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/21 The Spirit of Christ by Andrew Murray基督的靈慕安德烈.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/22 What is Man by T Austin-Sparks人算甚麼史百克.png"
+               alt="22 What is Man by T Austin-Sparks人算甚麼史百克"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">22 What is Man by T Austin-Sparks人算甚麼史百克</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/22 What is Man by T Austin-Sparks人算甚麼史百克.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/22 What is Man by T Austin-Sparks人算甚麼史百克.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/23 Sailing with Paul by Harry Ironside與保羅同航艾朗西.png"
+               alt="23 Sailing with Paul by Harry Ironside與保羅同航艾朗西"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">23 Sailing with Paul by Harry Ironside與保羅同航艾朗西</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/23 Sailing with Paul by Harry Ironside與保羅同航艾朗西.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/23 Sailing with Paul by Harry Ironside與保羅同航艾朗西.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/24 God's Salvation by John Fort神的救恩約翰霍池.png"
+               alt="24 God's Salvation by John Fort神的救恩約翰霍池"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">24 God's Salvation by John Fort神的救恩約翰霍池</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/24 God's Salvation by John Fort神的救恩約翰霍池.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/24 God's Salvation by John Fort神的救恩約翰霍池.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/25 His Side Versus Our Side by Norman Harrison神這邊對我們那裏羅文夏里遜.png"
+               alt="25 His Side Versus Our Side by Norman Harrison神這邊對我們那裏羅文夏里遜"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">25 His Side Versus Our Side by Norman Harrison神這邊對我們那裏羅文夏里遜</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/25 His Side Versus Our Side by Norman Harrison神這邊對我們那裏羅文夏里遜.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/25 His Side Versus Our Side by Norman Harrison神這邊對我們那裏羅文夏里遜.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/26 A Sure Guide to Heaven by Joseph Alleine上天堂的確實指引約瑟亞倫.png"
+               alt="26 A Sure Guide to Heaven by Joseph Alleine上天堂的確實指引約瑟亞倫"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">26 A Sure Guide to Heaven by Joseph Alleine上天堂的確實指引約瑟亞倫</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/26 A Sure Guide to Heaven by Joseph Alleine上天堂的確實指引約瑟亞倫.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/26 A Sure Guide to Heaven by Joseph Alleine上天堂的確實指引約瑟亞倫.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/27 Dying to Live by Jessie Penn-Lewis務死得生賓路易夫人.png"
+               alt="27 Dying to Live by Jessie Penn-Lewis務死得生賓路易夫人"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">27 Dying to Live by Jessie Penn-Lewis務死得生賓路易夫人</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/27 Dying to Live by Jessie Penn-Lewis務死得生賓路易夫人.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/27 Dying to Live by Jessie Penn-Lewis務死得生賓路易夫人.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/28晨更柝聲.png"
+               alt="28晨更柝聲"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">28晨更柝聲</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/28晨更柝聲.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/28晨更柝聲.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/29 Born Crucified by LE Maxwell 釘死得生LE麥斯威爾.png"
+               alt="29 Born Crucified by LE Maxwell 釘死得生LE麥斯威爾"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">29 Born Crucified by LE Maxwell 釘死得生LE麥斯威爾</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/29 Born Crucified by LE Maxwell 釘死得生LE麥斯威爾.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/29 Born Crucified by LE Maxwell 釘死得生LE麥斯威爾.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/30 The Secret of Guidance by F B Meyer引導的訣要邁爾.png"
+               alt="30 The Secret of Guidance by F B Meyer引導的訣要邁爾"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">30 The Secret of Guidance by F B Meyer引導的訣要邁爾</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/30 The Secret of Guidance by F B Meyer引導的訣要邁爾.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/30 The Secret of Guidance by F B Meyer引導的訣要邁爾.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/31 The Law of Liberty in the Spiritual Life by Evan Hopkins屬靈生命中釋放之律伊雲鶴健士.png"
+               alt="31 The Law of Liberty in the Spiritual Life by Evan Hopkins屬靈生命中釋放之律伊雲鶴健士"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">31 The Law of Liberty in the Spiritual Life by Evan Hopkins屬靈生命中釋放之律伊雲鶴健士</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/31 The Law of Liberty in the Spiritual Life by Evan Hopkins屬靈生命中釋放之律伊雲鶴健士.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/31 The Law of Liberty in the Spiritual Life by Evan Hopkins屬靈生命中釋放之律伊雲鶴健士.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/32 Operation of the Spriit of God by John Nelson Darby 神聖靈的運行達秘.png"
+               alt="32 Operation of the Spriit of God by John Nelson Darby 神聖靈的運行達秘"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">32 Operation of the Spriit of God by John Nelson Darby 神聖靈的運行達秘</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/32 Operation of the Spriit of God by John Nelson Darby 神聖靈的運行達秘.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/32 Operation of the Spriit of God by John Nelson Darby 神聖靈的運行達秘.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/33 The Master's Indwelling by Andrew Murray主的內住慕安德烈.png"
+               alt="33 The Master's Indwelling by Andrew Murray主的內住慕安德烈"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">33 The Master's Indwelling by Andrew Murray主的內住慕安德烈</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/33 The Master's Indwelling by Andrew Murray主的內住慕安德烈.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/33 The Master's Indwelling by Andrew Murray主的內住慕安德烈.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/34 The Glorious Filling Of The Holy Spirit by Andrew Murray聖靈的榮耀充滿慕安德烈.png"
+               alt="34 The Glorious Filling Of The Holy Spirit by Andrew Murray聖靈的榮耀充滿慕安德烈"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">34 The Glorious Filling Of The Holy Spirit by Andrew Murray聖靈的榮耀充滿慕安德烈</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/34 The Glorious Filling Of The Holy Spirit by Andrew Murray聖靈的榮耀充滿慕安德烈.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/34 The Glorious Filling Of The Holy Spirit by Andrew Murray聖靈的榮耀充滿慕安德烈.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/35 Lectures on the Epistle to the Galatians by W Kelly加拉太書講義基利.png"
+               alt="35 Lectures on the Epistle to the Galatians by W Kelly加拉太書講義基利"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">35 Lectures on the Epistle to the Galatians by W Kelly加拉太書講義基利</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/35 Lectures on the Epistle to the Galatians by W Kelly加拉太書講義基利.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/35 Lectures on the Epistle to the Galatians by W Kelly加拉太書講義基利.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/36 Bone Of His Bone by F J Huegel祂骨中的骨F J 華高.png"
+               alt="36 Bone Of His Bone by F J Huegel祂骨中的骨F J 華高"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">36 Bone Of His Bone by F J Huegel祂骨中的骨F J 華高</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/36 Bone Of His Bone by F J Huegel祂骨中的骨F J 華高.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/36 Bone Of His Bone by F J Huegel祂骨中的骨F J 華高.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/37 Absolute Surrender by Andrew Murray全然交付慕安德烈.png"
+               alt="37 Absolute Surrender by Andrew Murray全然交付慕安德烈"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">37 Absolute Surrender by Andrew Murray全然交付慕安德烈</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/37 Absolute Surrender by Andrew Murray全然交付慕安德烈.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/37 Absolute Surrender by Andrew Murray全然交付慕安德烈.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/38 The Centrality of the Cross by Jessie Penn-Lewis十架居中賓路易夫人.png"
+               alt="38 The Centrality of the Cross by Jessie Penn-Lewis十架居中賓路易夫人"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">38 The Centrality of the Cross by Jessie Penn-Lewis十架居中賓路易夫人</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/38 The Centrality of the Cross by Jessie Penn-Lewis十架居中賓路易夫人.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/38 The Centrality of the Cross by Jessie Penn-Lewis十架居中賓路易夫人.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/39 Pleasure and Profit in Bible Study by Dwight Moody讀經的樂趣和益處慕廸.png"
+               alt="39 Pleasure and Profit in Bible Study by Dwight Moody讀經的樂趣和益處慕廸"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">39 Pleasure and Profit in Bible Study by Dwight Moody讀經的樂趣和益處慕廸</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/39 Pleasure and Profit in Bible Study by Dwight Moody讀經的樂趣和益處慕廸.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/39 Pleasure and Profit in Bible Study by Dwight Moody讀經的樂趣和益處慕廸.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/40 The Inner Chamber and the Inner Life by Andrew Murray內室與內裏的生命慕安德烈.png"
+               alt="40 The Inner Chamber and the Inner Life by Andrew Murray內室與內裏的生命慕安德烈"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">40 The Inner Chamber and the Inner Life by Andrew Murray內室與內裏的生命慕安德烈</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/40 The Inner Chamber and the Inner Life by Andrew Murray內室與內裏的生命慕安德烈.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/40 The Inner Chamber and the Inner Life by Andrew Murray內室與內裏的生命慕安德烈.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/41 George Muller and the Secret of His Power in Prayer by Andrew Murray喬治慕勒禱告能力的訣要慕安德烈.png"
+               alt="41 George Muller and the Secret of His Power in Prayer by Andrew Murray喬治慕勒禱告能力的訣要慕安德烈"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">41 George Muller and the Secret of His Power in Prayer by Andrew Murray喬治慕勒禱告能力的訣要慕安德烈</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/41 George Muller and the Secret of His Power in Prayer by Andrew Murray喬治慕勒禱告能力的訣要慕安德烈.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/41 George Muller and the Secret of His Power in Prayer by Andrew Murray喬治慕勒禱告能力的訣要慕安德烈.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/42 The New Life by Captain Reginald Wallis新生命利珍諾華里士.png"
+               alt="42 The New Life by Captain Reginald Wallis新生命利珍諾華里士"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">42 The New Life by Captain Reginald Wallis新生命利珍諾華里士</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/42 The New Life by Captain Reginald Wallis新生命利珍諾華里士.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/42 The New Life by Captain Reginald Wallis新生命利珍諾華里士.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/43 George Muller Man of Faith by Charles R Parsons信心偉人喬治慕勒查理士帕信.png"
+               alt="43 George Muller Man of Faith by Charles R Parsons信心偉人喬治慕勒查理士帕信"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">43 George Muller Man of Faith by Charles R Parsons信心偉人喬治慕勒查理士帕信</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/43 George Muller Man of Faith by Charles R Parsons信心偉人喬治慕勒查理士帕信.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/43 George Muller Man of Faith by Charles R Parsons信心偉人喬治慕勒查理士帕信.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/44 The Kneeling Christian跪着的基督徒.png"
+               alt="44 The Kneeling Christian跪着的基督徒"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">44 The Kneeling Christian跪着的基督徒</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/44 The Kneeling Christian跪着的基督徒.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/44 The Kneeling Christian跪着的基督徒.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/45 Samuel Morris Compiled by James Meletious毛三勉.png"
+               alt="45 Samuel Morris Compiled by James Meletious毛三勉"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">45 Samuel Morris Compiled by James Meletious毛三勉</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/45 Samuel Morris Compiled by James Meletious毛三勉.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/45 Samuel Morris Compiled by James Meletious毛三勉.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/46 The Prayer Life by Andrew Murray祈禱的生活慕安德烈.png"
+               alt="46 The Prayer Life by Andrew Murray祈禱的生活慕安德烈"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">46 The Prayer Life by Andrew Murray祈禱的生活慕安德烈</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/46 The Prayer Life by Andrew Murray祈禱的生活慕安德烈.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/46 The Prayer Life by Andrew Murray祈禱的生活慕安德烈.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/47 The Path of Prayer by Samuel Chadwick禱告之路撒母耳察域.png"
+               alt="47 The Path of Prayer by Samuel Chadwick禱告之路撒母耳察域"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">47 The Path of Prayer by Samuel Chadwick禱告之路撒母耳察域</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/47 The Path of Prayer by Samuel Chadwick禱告之路撒母耳察域.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/47 The Path of Prayer by Samuel Chadwick禱告之路撒母耳察域.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/48 Fundamental Questions of the Christian Life by T Austin-Sparks基督徒生命的基本問題.png"
+               alt="48 Fundamental Questions of the Christian Life by T Austin-Sparks基督徒生命的基本問題"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">48 Fundamental Questions of the Christian Life by T Austin-Sparks基督徒生命的基本問題</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/48 Fundamental Questions of the Christian Life by T Austin-Sparks基督徒生命的基本問題.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/48 Fundamental Questions of the Christian Life by T Austin-Sparks基督徒生命的基本問題.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/49 The All-Sufficiency of Christ by Charles Henry Mackintosh基督的全足全豐查理麥景陶.png"
+               alt="49 The All-Sufficiency of Christ by Charles Henry Mackintosh基督的全足全豐查理麥景陶"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">49 The All-Sufficiency of Christ by Charles Henry Mackintosh基督的全足全豐查理麥景陶</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/49 The All-Sufficiency of Christ by Charles Henry Mackintosh基督的全足全豐查理麥景陶.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/49 The All-Sufficiency of Christ by Charles Henry Mackintosh基督的全足全豐查理麥景陶.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/50 Glad Tidings by Charles Henry Mackintosh大喜的信息麥景陶.png"
+               alt="50 Glad Tidings by Charles Henry Mackintosh大喜的信息麥景陶"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">50 Glad Tidings by Charles Henry Mackintosh大喜的信息麥景陶</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/50 Glad Tidings by Charles Henry Mackintosh大喜的信息麥景陶.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/50 Glad Tidings by Charles Henry Mackintosh大喜的信息麥景陶.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/51 Person and work of the Holy Spirit by Samuel Ridout聖靈的位格和工作撒母耳利都.png"
+               alt="51 Person and work of the Holy Spirit by Samuel Ridout聖靈的位格和工作撒母耳利都"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">51 Person and work of the Holy Spirit by Samuel Ridout聖靈的位格和工作撒母耳利都</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/51 Person and work of the Holy Spirit by Samuel Ridout聖靈的位格和工作撒母耳利都.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/51 Person and work of the Holy Spirit by Samuel Ridout聖靈的位格和工作撒母耳利都.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/52 The Church and its Order According to Scripture by Samuel Ridout教會和合乎聖經的規矩撒母耳利都.png"
+               alt="52 The Church and its Order According to Scripture by Samuel Ridout教會和合乎聖經的規矩撒母耳利都"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">52 The Church and its Order According to Scripture by Samuel Ridout教會和合乎聖經的規矩撒母耳利都</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/52 The Church and its Order According to Scripture by Samuel Ridout教會和合乎聖經的規矩撒母耳利都.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/52 The Church and its Order According to Scripture by Samuel Ridout教會和合乎聖經的規矩撒母耳利都.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/53 Prayer and the Prayer Meeting by Charles Henry Mackintosh祈禱和祈禱會查理士亨利麥景陶.png"
+               alt="53 Prayer and the Prayer Meeting by Charles Henry Mackintosh祈禱和祈禱會查理士亨利麥景陶"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">53 Prayer and the Prayer Meeting by Charles Henry Mackintosh祈禱和祈禱會查理士亨利麥景陶</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/53 Prayer and the Prayer Meeting by Charles Henry Mackintosh祈禱和祈禱會查理士亨利麥景陶.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/53 Prayer and the Prayer Meeting by Charles Henry Mackintosh祈禱和祈禱會查理士亨利麥景陶.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/54 The Lord's Coming, Israel, and the Church by Thomas Blackburn Baines主的再來以色列和教會班尼斯.png"
+               alt="54 The Lord's Coming, Israel, and the Church by Thomas Blackburn Baines主的再來以色列和教會班尼斯"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">54 The Lord's Coming, Israel, and the Church by Thomas Blackburn Baines主的再來以色列和教會班尼斯</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/54 The Lord's Coming, Israel, and the Church by Thomas Blackburn Baines主的再來以色列和教會班尼斯.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/54 The Lord's Coming, Israel, and the Church by Thomas Blackburn Baines主的再來以色列和教會班尼斯.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/55 Face to Face by Jessie Penn-Lewis面對面賓路易夫人.png"
+               alt="55 Face to Face by Jessie Penn-Lewis面對面賓路易夫人"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">55 Face to Face by Jessie Penn-Lewis面對面賓路易夫人</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/55 Face to Face by Jessie Penn-Lewis面對面賓路易夫人.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/55 Face to Face by Jessie Penn-Lewis面對面賓路易夫人.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/56 Every-Member Evangelism by J E Conant人人傳福音J E 高倫.png"
+               alt="56 Every-Member Evangelism by J E Conant人人傳福音J E 高倫"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">56 Every-Member Evangelism by J E Conant人人傳福音J E 高倫</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/56 Every-Member Evangelism by J E Conant人人傳福音J E 高倫.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/56 Every-Member Evangelism by J E Conant人人傳福音J E 高倫.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/57 Abide in Christ by Andrew Murray住在基督裏慕安德烈.png"
+               alt="57 Abide in Christ by Andrew Murray住在基督裏慕安德烈"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">57 Abide in Christ by Andrew Murray住在基督裏慕安德烈</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/57 Abide in Christ by Andrew Murray住在基督裏慕安德烈.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/57 Abide in Christ by Andrew Murray住在基督裏慕安德烈.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/58 The New Life by Andrew Murray新生命慕安德烈.png"
+               alt="58 The New Life by Andrew Murray新生命慕安德烈"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">58 The New Life by Andrew Murray新生命慕安德烈</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/58 The New Life by Andrew Murray新生命慕安德烈.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/58 The New Life by Andrew Murray新生命慕安德烈.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/59 Waiting On God by Andrew Murray等候神慕安德烈.png"
+               alt="59 Waiting On God by Andrew Murray等候神慕安德烈"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">59 Waiting On God by Andrew Murray等候神慕安德烈</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/59 Waiting On God by Andrew Murray等候神慕安德烈.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/59 Waiting On God by Andrew Murray等候神慕安德烈.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="thumb-wrap">
+          <div class="skeleton"></div>
+          <img class="book-thumb"
+               src="/philadelphia.github.io/assets/thumbs/zh-hant/shuiling/60 蒙恩德言.png"
+               alt="60 蒙恩德言"
+               loading="lazy"
+               onload="this.classList.add('loaded')"
+               onerror="this.parentElement.querySelector('.skeleton').style.background='var(--surf2)';this.remove()"/>
+        </div>
+        <div class="book-info">
+          <p class="book-name">60 蒙恩德言</p>
+          <div class="book-actions">
+            <a href="/philadelphia.github.io/zh-hant/shuiling/60 蒙恩德言.pdf" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="/philadelphia.github.io/zh-hant/shuiling/60 蒙恩德言.pdf" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </body>

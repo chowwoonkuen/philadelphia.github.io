@@ -2,14 +2,1336 @@
 <html lang="zh-hant">
 <head>
   <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>靈修資料</title>
   <link rel="stylesheet" href="/philadelphia.github.io/assets/css/style.css"/>
+  <style>
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: .85rem;
+      color: var(--text2);
+    }
+    .progress-bar {
+      flex: 1;
+      height: 6px;
+      background: var(--surf3);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-lt));
+      border-radius: 99px;
+      width: 0.0%;
+    }
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      font-size: .8rem;
+      color: var(--text2);
+    }
+    .legend-item { display: flex; align-items: center; gap: .4rem; }
+    .leg-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+    .leg-avail { background: var(--gold-bg); border: 1.5px solid var(--gold-lt); }
+    .leg-miss  { background: var(--miss-bg); border: 1.5px dashed var(--miss-bdr); }
+    .leg-today { background: var(--today-bg); border: 1.5px solid var(--today-bdr); }
+    /* ── Month tabs ── */
+    .month-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      margin-bottom: 1.5rem;
+    }
+    .mtab {
+      padding: .35rem .8rem;
+      border-radius: 99px;
+      font-size: .82rem;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      background: var(--surf);
+      cursor: pointer;
+      transition: all .18s;
+    }
+    .mtab:hover { border-color: var(--gold-lt); color: var(--gold); background: var(--gold-bg); }
+    .mtab.active { background: var(--gold); border-color: var(--gold); color: #fff; font-weight: 600; }
+    /* ── Month panel ── */
+    .month-panel { display: none; }
+    .month-panel.visible { display: block; }
+    .month-name {
+      font-family: var(--font-s);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: .4rem;
+    }
+    .day-tile {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r);
+      font-size: .8rem;
+      transition: all .18s;
+      position: relative;
+      cursor: default;
+    }
+    .day-tile.avail {
+      background: var(--gold-bg);
+      border: 1.5px solid var(--gold-lt);
+      text-decoration: none;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .day-tile.avail:hover {
+      background: var(--gold);
+      border-color: var(--gold);
+      transform: scale(1.1);
+      box-shadow: 0 3px 12px rgba(154,111,46,.25);
+      z-index: 1;
+    }
+    .day-tile.avail:hover .day-num { color: #fff; }
+    .day-tile.miss {
+      background: var(--miss-bg);
+      border: 1.5px dashed var(--miss-bdr);
+      color: var(--text3);
+    }
+    .day-tile.today-hi {
+      background: var(--today-bg) !important;
+      border: 2px solid var(--today-bdr) !important;
+      box-shadow: 0 0 0 3px rgba(120,31,16,.2);
+    }
+    .day-tile.today-hi .day-num { color: #ffcba4 !important; }
+    .day-num { font-size: .85rem; font-weight: 500; line-height: 1; }
+    .day-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--gold);
+      margin-top: 2px;
+    }
+    .day-tile.miss .day-dot { background: var(--text3); opacity: .4; }
+    .day-tile.today-hi .day-dot { background: #ffcba4; }
+    @media (max-width: 380px) {
+      .days-grid { gap: .25rem; }
+      .day-num { font-size: .75rem; }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>靈修資料</h1>
-    <div class="icon-grid">
+  <div class="page">
+    <a href="/philadelphia.github.io/zh-hant/index.html" class="back">繁體中文</a>
+    <h1 class="sec-title">靈修資料</h1>
+
+    <div class="progress-row">
+      <span>已上傳 <strong>0</strong> / 366 天</span>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="leg-dot leg-avail"></span><span>已上傳（點擊閱讀）</span></div>
+      <div class="legend-item"><span class="leg-dot leg-miss"></span><span>尚未上傳</span></div>
+      <div class="legend-item"><span class="leg-dot leg-today"></span><span>今天</span></div>
+    </div>
+
+    <div class="month-tabs">
+      <button class="mtab" onclick="showMonth(0)" id="tab0">一月</button>
+      <button class="mtab" onclick="showMonth(1)" id="tab1">二月</button>
+      <button class="mtab" onclick="showMonth(2)" id="tab2">三月</button>
+      <button class="mtab" onclick="showMonth(3)" id="tab3">四月</button>
+      <button class="mtab" onclick="showMonth(4)" id="tab4">五月</button>
+      <button class="mtab" onclick="showMonth(5)" id="tab5">六月</button>
+      <button class="mtab" onclick="showMonth(6)" id="tab6">七月</button>
+      <button class="mtab" onclick="showMonth(7)" id="tab7">八月</button>
+      <button class="mtab" onclick="showMonth(8)" id="tab8">九月</button>
+      <button class="mtab" onclick="showMonth(9)" id="tab9">十月</button>
+      <button class="mtab" onclick="showMonth(10)" id="tab10">十一月</button>
+      <button class="mtab" onclick="showMonth(11)" id="tab11">十二月</button>
+    </div>
+    <div class="month-panel visible" id="mpanel0">
+      <div class="month-name">一月</div>
+      <div class="days-grid">
+        <div class="day-tile miss" data-date="01.01" title="01.01（未上傳）">
+          <span class="day-num">1</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.02" title="01.02（未上傳）">
+          <span class="day-num">2</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.03" title="01.03（未上傳）">
+          <span class="day-num">3</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.04" title="01.04（未上傳）">
+          <span class="day-num">4</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.05" title="01.05（未上傳）">
+          <span class="day-num">5</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.06" title="01.06（未上傳）">
+          <span class="day-num">6</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.07" title="01.07（未上傳）">
+          <span class="day-num">7</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.08" title="01.08（未上傳）">
+          <span class="day-num">8</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.09" title="01.09（未上傳）">
+          <span class="day-num">9</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.10" title="01.10（未上傳）">
+          <span class="day-num">10</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.11" title="01.11（未上傳）">
+          <span class="day-num">11</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.12" title="01.12（未上傳）">
+          <span class="day-num">12</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.13" title="01.13（未上傳）">
+          <span class="day-num">13</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.14" title="01.14（未上傳）">
+          <span class="day-num">14</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.15" title="01.15（未上傳）">
+          <span class="day-num">15</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.16" title="01.16（未上傳）">
+          <span class="day-num">16</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.17" title="01.17（未上傳）">
+          <span class="day-num">17</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.18" title="01.18（未上傳）">
+          <span class="day-num">18</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.19" title="01.19（未上傳）">
+          <span class="day-num">19</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.20" title="01.20（未上傳）">
+          <span class="day-num">20</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.21" title="01.21（未上傳）">
+          <span class="day-num">21</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.22" title="01.22（未上傳）">
+          <span class="day-num">22</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.23" title="01.23（未上傳）">
+          <span class="day-num">23</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.24" title="01.24（未上傳）">
+          <span class="day-num">24</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.25" title="01.25（未上傳）">
+          <span class="day-num">25</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.26" title="01.26（未上傳）">
+          <span class="day-num">26</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.27" title="01.27（未上傳）">
+          <span class="day-num">27</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.28" title="01.28（未上傳）">
+          <span class="day-num">28</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.29" title="01.29（未上傳）">
+          <span class="day-num">29</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.30" title="01.30（未上傳）">
+          <span class="day-num">30</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="01.31" title="01.31（未上傳）">
+          <span class="day-num">31</span><div class="day-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="month-panel" id="mpanel1">
+      <div class="month-name">二月</div>
+      <div class="days-grid">
+        <div class="day-tile miss" data-date="02.01" title="02.01（未上傳）">
+          <span class="day-num">1</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.02" title="02.02（未上傳）">
+          <span class="day-num">2</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.03" title="02.03（未上傳）">
+          <span class="day-num">3</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.04" title="02.04（未上傳）">
+          <span class="day-num">4</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.05" title="02.05（未上傳）">
+          <span class="day-num">5</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.06" title="02.06（未上傳）">
+          <span class="day-num">6</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.07" title="02.07（未上傳）">
+          <span class="day-num">7</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.08" title="02.08（未上傳）">
+          <span class="day-num">8</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.09" title="02.09（未上傳）">
+          <span class="day-num">9</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.10" title="02.10（未上傳）">
+          <span class="day-num">10</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.11" title="02.11（未上傳）">
+          <span class="day-num">11</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.12" title="02.12（未上傳）">
+          <span class="day-num">12</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.13" title="02.13（未上傳）">
+          <span class="day-num">13</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.14" title="02.14（未上傳）">
+          <span class="day-num">14</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.15" title="02.15（未上傳）">
+          <span class="day-num">15</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.16" title="02.16（未上傳）">
+          <span class="day-num">16</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.17" title="02.17（未上傳）">
+          <span class="day-num">17</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.18" title="02.18（未上傳）">
+          <span class="day-num">18</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.19" title="02.19（未上傳）">
+          <span class="day-num">19</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.20" title="02.20（未上傳）">
+          <span class="day-num">20</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.21" title="02.21（未上傳）">
+          <span class="day-num">21</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.22" title="02.22（未上傳）">
+          <span class="day-num">22</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.23" title="02.23（未上傳）">
+          <span class="day-num">23</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.24" title="02.24（未上傳）">
+          <span class="day-num">24</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.25" title="02.25（未上傳）">
+          <span class="day-num">25</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.26" title="02.26（未上傳）">
+          <span class="day-num">26</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.27" title="02.27（未上傳）">
+          <span class="day-num">27</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.28" title="02.28（未上傳）">
+          <span class="day-num">28</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="02.29" title="02.29（未上傳）">
+          <span class="day-num">29</span><div class="day-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="month-panel" id="mpanel2">
+      <div class="month-name">三月</div>
+      <div class="days-grid">
+        <div class="day-tile miss" data-date="03.01" title="03.01（未上傳）">
+          <span class="day-num">1</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.02" title="03.02（未上傳）">
+          <span class="day-num">2</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.03" title="03.03（未上傳）">
+          <span class="day-num">3</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.04" title="03.04（未上傳）">
+          <span class="day-num">4</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.05" title="03.05（未上傳）">
+          <span class="day-num">5</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.06" title="03.06（未上傳）">
+          <span class="day-num">6</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.07" title="03.07（未上傳）">
+          <span class="day-num">7</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.08" title="03.08（未上傳）">
+          <span class="day-num">8</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.09" title="03.09（未上傳）">
+          <span class="day-num">9</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.10" title="03.10（未上傳）">
+          <span class="day-num">10</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.11" title="03.11（未上傳）">
+          <span class="day-num">11</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.12" title="03.12（未上傳）">
+          <span class="day-num">12</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.13" title="03.13（未上傳）">
+          <span class="day-num">13</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.14" title="03.14（未上傳）">
+          <span class="day-num">14</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.15" title="03.15（未上傳）">
+          <span class="day-num">15</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.16" title="03.16（未上傳）">
+          <span class="day-num">16</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.17" title="03.17（未上傳）">
+          <span class="day-num">17</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.18" title="03.18（未上傳）">
+          <span class="day-num">18</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.19" title="03.19（未上傳）">
+          <span class="day-num">19</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.20" title="03.20（未上傳）">
+          <span class="day-num">20</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.21" title="03.21（未上傳）">
+          <span class="day-num">21</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.22" title="03.22（未上傳）">
+          <span class="day-num">22</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.23" title="03.23（未上傳）">
+          <span class="day-num">23</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.24" title="03.24（未上傳）">
+          <span class="day-num">24</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.25" title="03.25（未上傳）">
+          <span class="day-num">25</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.26" title="03.26（未上傳）">
+          <span class="day-num">26</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.27" title="03.27（未上傳）">
+          <span class="day-num">27</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.28" title="03.28（未上傳）">
+          <span class="day-num">28</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.29" title="03.29（未上傳）">
+          <span class="day-num">29</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.30" title="03.30（未上傳）">
+          <span class="day-num">30</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="03.31" title="03.31（未上傳）">
+          <span class="day-num">31</span><div class="day-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="month-panel" id="mpanel3">
+      <div class="month-name">四月</div>
+      <div class="days-grid">
+        <div class="day-tile miss" data-date="04.01" title="04.01（未上傳）">
+          <span class="day-num">1</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.02" title="04.02（未上傳）">
+          <span class="day-num">2</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.03" title="04.03（未上傳）">
+          <span class="day-num">3</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.04" title="04.04（未上傳）">
+          <span class="day-num">4</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.05" title="04.05（未上傳）">
+          <span class="day-num">5</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.06" title="04.06（未上傳）">
+          <span class="day-num">6</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.07" title="04.07（未上傳）">
+          <span class="day-num">7</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.08" title="04.08（未上傳）">
+          <span class="day-num">8</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.09" title="04.09（未上傳）">
+          <span class="day-num">9</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.10" title="04.10（未上傳）">
+          <span class="day-num">10</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.11" title="04.11（未上傳）">
+          <span class="day-num">11</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.12" title="04.12（未上傳）">
+          <span class="day-num">12</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.13" title="04.13（未上傳）">
+          <span class="day-num">13</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.14" title="04.14（未上傳）">
+          <span class="day-num">14</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.15" title="04.15（未上傳）">
+          <span class="day-num">15</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.16" title="04.16（未上傳）">
+          <span class="day-num">16</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.17" title="04.17（未上傳）">
+          <span class="day-num">17</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.18" title="04.18（未上傳）">
+          <span class="day-num">18</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.19" title="04.19（未上傳）">
+          <span class="day-num">19</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.20" title="04.20（未上傳）">
+          <span class="day-num">20</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.21" title="04.21（未上傳）">
+          <span class="day-num">21</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.22" title="04.22（未上傳）">
+          <span class="day-num">22</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.23" title="04.23（未上傳）">
+          <span class="day-num">23</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.24" title="04.24（未上傳）">
+          <span class="day-num">24</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.25" title="04.25（未上傳）">
+          <span class="day-num">25</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.26" title="04.26（未上傳）">
+          <span class="day-num">26</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.27" title="04.27（未上傳）">
+          <span class="day-num">27</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.28" title="04.28（未上傳）">
+          <span class="day-num">28</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.29" title="04.29（未上傳）">
+          <span class="day-num">29</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="04.30" title="04.30（未上傳）">
+          <span class="day-num">30</span><div class="day-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="month-panel" id="mpanel4">
+      <div class="month-name">五月</div>
+      <div class="days-grid">
+        <div class="day-tile miss" data-date="05.01" title="05.01（未上傳）">
+          <span class="day-num">1</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.02" title="05.02（未上傳）">
+          <span class="day-num">2</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.03" title="05.03（未上傳）">
+          <span class="day-num">3</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.04" title="05.04（未上傳）">
+          <span class="day-num">4</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.05" title="05.05（未上傳）">
+          <span class="day-num">5</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.06" title="05.06（未上傳）">
+          <span class="day-num">6</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.07" title="05.07（未上傳）">
+          <span class="day-num">7</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.08" title="05.08（未上傳）">
+          <span class="day-num">8</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.09" title="05.09（未上傳）">
+          <span class="day-num">9</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.10" title="05.10（未上傳）">
+          <span class="day-num">10</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.11" title="05.11（未上傳）">
+          <span class="day-num">11</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.12" title="05.12（未上傳）">
+          <span class="day-num">12</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.13" title="05.13（未上傳）">
+          <span class="day-num">13</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.14" title="05.14（未上傳）">
+          <span class="day-num">14</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.15" title="05.15（未上傳）">
+          <span class="day-num">15</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.16" title="05.16（未上傳）">
+          <span class="day-num">16</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.17" title="05.17（未上傳）">
+          <span class="day-num">17</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.18" title="05.18（未上傳）">
+          <span class="day-num">18</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.19" title="05.19（未上傳）">
+          <span class="day-num">19</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.20" title="05.20（未上傳）">
+          <span class="day-num">20</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.21" title="05.21（未上傳）">
+          <span class="day-num">21</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.22" title="05.22（未上傳）">
+          <span class="day-num">22</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.23" title="05.23（未上傳）">
+          <span class="day-num">23</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.24" title="05.24（未上傳）">
+          <span class="day-num">24</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.25" title="05.25（未上傳）">
+          <span class="day-num">25</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.26" title="05.26（未上傳）">
+          <span class="day-num">26</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.27" title="05.27（未上傳）">
+          <span class="day-num">27</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.28" title="05.28（未上傳）">
+          <span class="day-num">28</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.29" title="05.29（未上傳）">
+          <span class="day-num">29</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.30" title="05.30（未上傳）">
+          <span class="day-num">30</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="05.31" title="05.31（未上傳）">
+          <span class="day-num">31</span><div class="day-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="month-panel" id="mpanel5">
+      <div class="month-name">六月</div>
+      <div class="days-grid">
+        <div class="day-tile miss" data-date="06.01" title="06.01（未上傳）">
+          <span class="day-num">1</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.02" title="06.02（未上傳）">
+          <span class="day-num">2</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.03" title="06.03（未上傳）">
+          <span class="day-num">3</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.04" title="06.04（未上傳）">
+          <span class="day-num">4</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.05" title="06.05（未上傳）">
+          <span class="day-num">5</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.06" title="06.06（未上傳）">
+          <span class="day-num">6</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.07" title="06.07（未上傳）">
+          <span class="day-num">7</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.08" title="06.08（未上傳）">
+          <span class="day-num">8</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.09" title="06.09（未上傳）">
+          <span class="day-num">9</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.10" title="06.10（未上傳）">
+          <span class="day-num">10</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.11" title="06.11（未上傳）">
+          <span class="day-num">11</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.12" title="06.12（未上傳）">
+          <span class="day-num">12</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.13" title="06.13（未上傳）">
+          <span class="day-num">13</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.14" title="06.14（未上傳）">
+          <span class="day-num">14</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.15" title="06.15（未上傳）">
+          <span class="day-num">15</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.16" title="06.16（未上傳）">
+          <span class="day-num">16</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.17" title="06.17（未上傳）">
+          <span class="day-num">17</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.18" title="06.18（未上傳）">
+          <span class="day-num">18</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.19" title="06.19（未上傳）">
+          <span class="day-num">19</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.20" title="06.20（未上傳）">
+          <span class="day-num">20</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.21" title="06.21（未上傳）">
+          <span class="day-num">21</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.22" title="06.22（未上傳）">
+          <span class="day-num">22</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.23" title="06.23（未上傳）">
+          <span class="day-num">23</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.24" title="06.24（未上傳）">
+          <span class="day-num">24</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.25" title="06.25（未上傳）">
+          <span class="day-num">25</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.26" title="06.26（未上傳）">
+          <span class="day-num">26</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.27" title="06.27（未上傳）">
+          <span class="day-num">27</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.28" title="06.28（未上傳）">
+          <span class="day-num">28</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.29" title="06.29（未上傳）">
+          <span class="day-num">29</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="06.30" title="06.30（未上傳）">
+          <span class="day-num">30</span><div class="day-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="month-panel" id="mpanel6">
+      <div class="month-name">七月</div>
+      <div class="days-grid">
+        <div class="day-tile miss" data-date="07.01" title="07.01（未上傳）">
+          <span class="day-num">1</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.02" title="07.02（未上傳）">
+          <span class="day-num">2</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.03" title="07.03（未上傳）">
+          <span class="day-num">3</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.04" title="07.04（未上傳）">
+          <span class="day-num">4</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.05" title="07.05（未上傳）">
+          <span class="day-num">5</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.06" title="07.06（未上傳）">
+          <span class="day-num">6</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.07" title="07.07（未上傳）">
+          <span class="day-num">7</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.08" title="07.08（未上傳）">
+          <span class="day-num">8</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.09" title="07.09（未上傳）">
+          <span class="day-num">9</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.10" title="07.10（未上傳）">
+          <span class="day-num">10</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.11" title="07.11（未上傳）">
+          <span class="day-num">11</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.12" title="07.12（未上傳）">
+          <span class="day-num">12</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.13" title="07.13（未上傳）">
+          <span class="day-num">13</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.14" title="07.14（未上傳）">
+          <span class="day-num">14</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.15" title="07.15（未上傳）">
+          <span class="day-num">15</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.16" title="07.16（未上傳）">
+          <span class="day-num">16</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.17" title="07.17（未上傳）">
+          <span class="day-num">17</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.18" title="07.18（未上傳）">
+          <span class="day-num">18</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.19" title="07.19（未上傳）">
+          <span class="day-num">19</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.20" title="07.20（未上傳）">
+          <span class="day-num">20</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.21" title="07.21（未上傳）">
+          <span class="day-num">21</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.22" title="07.22（未上傳）">
+          <span class="day-num">22</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.23" title="07.23（未上傳）">
+          <span class="day-num">23</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.24" title="07.24（未上傳）">
+          <span class="day-num">24</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.25" title="07.25（未上傳）">
+          <span class="day-num">25</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.26" title="07.26（未上傳）">
+          <span class="day-num">26</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.27" title="07.27（未上傳）">
+          <span class="day-num">27</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.28" title="07.28（未上傳）">
+          <span class="day-num">28</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.29" title="07.29（未上傳）">
+          <span class="day-num">29</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.30" title="07.30（未上傳）">
+          <span class="day-num">30</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="07.31" title="07.31（未上傳）">
+          <span class="day-num">31</span><div class="day-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="month-panel" id="mpanel7">
+      <div class="month-name">八月</div>
+      <div class="days-grid">
+        <div class="day-tile miss" data-date="08.01" title="08.01（未上傳）">
+          <span class="day-num">1</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.02" title="08.02（未上傳）">
+          <span class="day-num">2</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.03" title="08.03（未上傳）">
+          <span class="day-num">3</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.04" title="08.04（未上傳）">
+          <span class="day-num">4</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.05" title="08.05（未上傳）">
+          <span class="day-num">5</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.06" title="08.06（未上傳）">
+          <span class="day-num">6</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.07" title="08.07（未上傳）">
+          <span class="day-num">7</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.08" title="08.08（未上傳）">
+          <span class="day-num">8</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.09" title="08.09（未上傳）">
+          <span class="day-num">9</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.10" title="08.10（未上傳）">
+          <span class="day-num">10</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.11" title="08.11（未上傳）">
+          <span class="day-num">11</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.12" title="08.12（未上傳）">
+          <span class="day-num">12</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.13" title="08.13（未上傳）">
+          <span class="day-num">13</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.14" title="08.14（未上傳）">
+          <span class="day-num">14</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.15" title="08.15（未上傳）">
+          <span class="day-num">15</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.16" title="08.16（未上傳）">
+          <span class="day-num">16</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.17" title="08.17（未上傳）">
+          <span class="day-num">17</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.18" title="08.18（未上傳）">
+          <span class="day-num">18</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.19" title="08.19（未上傳）">
+          <span class="day-num">19</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.20" title="08.20（未上傳）">
+          <span class="day-num">20</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.21" title="08.21（未上傳）">
+          <span class="day-num">21</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.22" title="08.22（未上傳）">
+          <span class="day-num">22</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.23" title="08.23（未上傳）">
+          <span class="day-num">23</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.24" title="08.24（未上傳）">
+          <span class="day-num">24</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.25" title="08.25（未上傳）">
+          <span class="day-num">25</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.26" title="08.26（未上傳）">
+          <span class="day-num">26</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.27" title="08.27（未上傳）">
+          <span class="day-num">27</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.28" title="08.28（未上傳）">
+          <span class="day-num">28</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.29" title="08.29（未上傳）">
+          <span class="day-num">29</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.30" title="08.30（未上傳）">
+          <span class="day-num">30</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="08.31" title="08.31（未上傳）">
+          <span class="day-num">31</span><div class="day-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="month-panel" id="mpanel8">
+      <div class="month-name">九月</div>
+      <div class="days-grid">
+        <div class="day-tile miss" data-date="09.01" title="09.01（未上傳）">
+          <span class="day-num">1</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.02" title="09.02（未上傳）">
+          <span class="day-num">2</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.03" title="09.03（未上傳）">
+          <span class="day-num">3</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.04" title="09.04（未上傳）">
+          <span class="day-num">4</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.05" title="09.05（未上傳）">
+          <span class="day-num">5</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.06" title="09.06（未上傳）">
+          <span class="day-num">6</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.07" title="09.07（未上傳）">
+          <span class="day-num">7</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.08" title="09.08（未上傳）">
+          <span class="day-num">8</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.09" title="09.09（未上傳）">
+          <span class="day-num">9</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.10" title="09.10（未上傳）">
+          <span class="day-num">10</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.11" title="09.11（未上傳）">
+          <span class="day-num">11</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.12" title="09.12（未上傳）">
+          <span class="day-num">12</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.13" title="09.13（未上傳）">
+          <span class="day-num">13</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.14" title="09.14（未上傳）">
+          <span class="day-num">14</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.15" title="09.15（未上傳）">
+          <span class="day-num">15</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.16" title="09.16（未上傳）">
+          <span class="day-num">16</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.17" title="09.17（未上傳）">
+          <span class="day-num">17</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.18" title="09.18（未上傳）">
+          <span class="day-num">18</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.19" title="09.19（未上傳）">
+          <span class="day-num">19</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.20" title="09.20（未上傳）">
+          <span class="day-num">20</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.21" title="09.21（未上傳）">
+          <span class="day-num">21</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.22" title="09.22（未上傳）">
+          <span class="day-num">22</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.23" title="09.23（未上傳）">
+          <span class="day-num">23</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.24" title="09.24（未上傳）">
+          <span class="day-num">24</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.25" title="09.25（未上傳）">
+          <span class="day-num">25</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.26" title="09.26（未上傳）">
+          <span class="day-num">26</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.27" title="09.27（未上傳）">
+          <span class="day-num">27</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.28" title="09.28（未上傳）">
+          <span class="day-num">28</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.29" title="09.29（未上傳）">
+          <span class="day-num">29</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="09.30" title="09.30（未上傳）">
+          <span class="day-num">30</span><div class="day-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="month-panel" id="mpanel9">
+      <div class="month-name">十月</div>
+      <div class="days-grid">
+        <div class="day-tile miss" data-date="10.01" title="10.01（未上傳）">
+          <span class="day-num">1</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.02" title="10.02（未上傳）">
+          <span class="day-num">2</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.03" title="10.03（未上傳）">
+          <span class="day-num">3</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.04" title="10.04（未上傳）">
+          <span class="day-num">4</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.05" title="10.05（未上傳）">
+          <span class="day-num">5</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.06" title="10.06（未上傳）">
+          <span class="day-num">6</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.07" title="10.07（未上傳）">
+          <span class="day-num">7</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.08" title="10.08（未上傳）">
+          <span class="day-num">8</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.09" title="10.09（未上傳）">
+          <span class="day-num">9</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.10" title="10.10（未上傳）">
+          <span class="day-num">10</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.11" title="10.11（未上傳）">
+          <span class="day-num">11</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.12" title="10.12（未上傳）">
+          <span class="day-num">12</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.13" title="10.13（未上傳）">
+          <span class="day-num">13</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.14" title="10.14（未上傳）">
+          <span class="day-num">14</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.15" title="10.15（未上傳）">
+          <span class="day-num">15</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.16" title="10.16（未上傳）">
+          <span class="day-num">16</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.17" title="10.17（未上傳）">
+          <span class="day-num">17</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.18" title="10.18（未上傳）">
+          <span class="day-num">18</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.19" title="10.19（未上傳）">
+          <span class="day-num">19</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.20" title="10.20（未上傳）">
+          <span class="day-num">20</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.21" title="10.21（未上傳）">
+          <span class="day-num">21</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.22" title="10.22（未上傳）">
+          <span class="day-num">22</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.23" title="10.23（未上傳）">
+          <span class="day-num">23</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.24" title="10.24（未上傳）">
+          <span class="day-num">24</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.25" title="10.25（未上傳）">
+          <span class="day-num">25</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.26" title="10.26（未上傳）">
+          <span class="day-num">26</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.27" title="10.27（未上傳）">
+          <span class="day-num">27</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.28" title="10.28（未上傳）">
+          <span class="day-num">28</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.29" title="10.29（未上傳）">
+          <span class="day-num">29</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.30" title="10.30（未上傳）">
+          <span class="day-num">30</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="10.31" title="10.31（未上傳）">
+          <span class="day-num">31</span><div class="day-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="month-panel" id="mpanel10">
+      <div class="month-name">十一月</div>
+      <div class="days-grid">
+        <div class="day-tile miss" data-date="11.01" title="11.01（未上傳）">
+          <span class="day-num">1</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.02" title="11.02（未上傳）">
+          <span class="day-num">2</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.03" title="11.03（未上傳）">
+          <span class="day-num">3</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.04" title="11.04（未上傳）">
+          <span class="day-num">4</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.05" title="11.05（未上傳）">
+          <span class="day-num">5</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.06" title="11.06（未上傳）">
+          <span class="day-num">6</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.07" title="11.07（未上傳）">
+          <span class="day-num">7</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.08" title="11.08（未上傳）">
+          <span class="day-num">8</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.09" title="11.09（未上傳）">
+          <span class="day-num">9</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.10" title="11.10（未上傳）">
+          <span class="day-num">10</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.11" title="11.11（未上傳）">
+          <span class="day-num">11</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.12" title="11.12（未上傳）">
+          <span class="day-num">12</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.13" title="11.13（未上傳）">
+          <span class="day-num">13</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.14" title="11.14（未上傳）">
+          <span class="day-num">14</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.15" title="11.15（未上傳）">
+          <span class="day-num">15</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.16" title="11.16（未上傳）">
+          <span class="day-num">16</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.17" title="11.17（未上傳）">
+          <span class="day-num">17</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.18" title="11.18（未上傳）">
+          <span class="day-num">18</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.19" title="11.19（未上傳）">
+          <span class="day-num">19</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.20" title="11.20（未上傳）">
+          <span class="day-num">20</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.21" title="11.21（未上傳）">
+          <span class="day-num">21</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.22" title="11.22（未上傳）">
+          <span class="day-num">22</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.23" title="11.23（未上傳）">
+          <span class="day-num">23</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.24" title="11.24（未上傳）">
+          <span class="day-num">24</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.25" title="11.25（未上傳）">
+          <span class="day-num">25</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.26" title="11.26（未上傳）">
+          <span class="day-num">26</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.27" title="11.27（未上傳）">
+          <span class="day-num">27</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.28" title="11.28（未上傳）">
+          <span class="day-num">28</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.29" title="11.29（未上傳）">
+          <span class="day-num">29</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="11.30" title="11.30（未上傳）">
+          <span class="day-num">30</span><div class="day-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="month-panel" id="mpanel11">
+      <div class="month-name">十二月</div>
+      <div class="days-grid">
+        <div class="day-tile miss" data-date="12.01" title="12.01（未上傳）">
+          <span class="day-num">1</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.02" title="12.02（未上傳）">
+          <span class="day-num">2</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.03" title="12.03（未上傳）">
+          <span class="day-num">3</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.04" title="12.04（未上傳）">
+          <span class="day-num">4</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.05" title="12.05（未上傳）">
+          <span class="day-num">5</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.06" title="12.06（未上傳）">
+          <span class="day-num">6</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.07" title="12.07（未上傳）">
+          <span class="day-num">7</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.08" title="12.08（未上傳）">
+          <span class="day-num">8</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.09" title="12.09（未上傳）">
+          <span class="day-num">9</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.10" title="12.10（未上傳）">
+          <span class="day-num">10</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.11" title="12.11（未上傳）">
+          <span class="day-num">11</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.12" title="12.12（未上傳）">
+          <span class="day-num">12</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.13" title="12.13（未上傳）">
+          <span class="day-num">13</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.14" title="12.14（未上傳）">
+          <span class="day-num">14</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.15" title="12.15（未上傳）">
+          <span class="day-num">15</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.16" title="12.16（未上傳）">
+          <span class="day-num">16</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.17" title="12.17（未上傳）">
+          <span class="day-num">17</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.18" title="12.18（未上傳）">
+          <span class="day-num">18</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.19" title="12.19（未上傳）">
+          <span class="day-num">19</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.20" title="12.20（未上傳）">
+          <span class="day-num">20</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.21" title="12.21（未上傳）">
+          <span class="day-num">21</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.22" title="12.22（未上傳）">
+          <span class="day-num">22</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.23" title="12.23（未上傳）">
+          <span class="day-num">23</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.24" title="12.24（未上傳）">
+          <span class="day-num">24</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.25" title="12.25（未上傳）">
+          <span class="day-num">25</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.26" title="12.26（未上傳）">
+          <span class="day-num">26</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.27" title="12.27（未上傳）">
+          <span class="day-num">27</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.28" title="12.28（未上傳）">
+          <span class="day-num">28</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.29" title="12.29（未上傳）">
+          <span class="day-num">29</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.30" title="12.30（未上傳）">
+          <span class="day-num">30</span><div class="day-dot"></div>
+        </div>
+        <div class="day-tile miss" data-date="12.31" title="12.31（未上傳）">
+          <span class="day-num">31</span><div class="day-dot"></div>
+        </div>
+      </div>
     </div>
   </div>
+  <script>
+    function showMonth(idx) {
+      document.querySelectorAll('.month-panel').forEach(function(el) { el.classList.remove('visible'); });
+      document.querySelectorAll('.mtab').forEach(function(el) { el.classList.remove('active'); });
+      document.getElementById('mpanel' + idx).classList.add('visible');
+      document.getElementById('tab' + idx).classList.add('active');
+    }
+    (function() {
+      var t  = new Date();
+      var mm = String(t.getMonth() + 1).padStart(2, '0');
+      var dd = String(t.getDate()).padStart(2, '0');
+      var el = document.querySelector('[data-date="' + mm + '.' + dd + '"]');
+      if (el) { el.classList.add('today-hi'); }
+      showMonth(t.getMonth());
+    })();
+  </script>
 </body>
 </html>

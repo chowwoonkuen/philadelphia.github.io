@@ -2,13 +2,42 @@
 <html lang="zh-hant">
 <head>
   <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>詩歌</title>
   <link rel="stylesheet" href="/philadelphia.github.io/assets/css/style.css"/>
+  <style>
+    .song-list { display: flex; flex-direction: column; gap: .65rem; max-width: 720px; }
+    .song-row {
+      display: flex;
+      align-items: center;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1rem 1.2rem;
+      gap: 1rem;
+      text-decoration: none;
+      color: var(--text);
+      box-shadow: var(--shadow);
+      transition: all .2s;
+    }
+    .song-row:hover { background: var(--gold-bg); border-color: var(--gold-lt); transform: translateX(4px); }
+    .song-num { font-size: .75rem; color: var(--text3); min-width: 22px; font-family: var(--font-b); font-weight: 600; }
+    .song-info { flex: 1; }
+    .song-name { font-family: var(--font-s); font-size: 1rem; color: var(--text); font-weight: 600; }
+    .song-badges { display: flex; gap: .35rem; margin-top: .3rem; flex-wrap: wrap; }
+    .badge { font-size: .65rem; padding: .15rem .5rem; border-radius: 99px; border: 1px solid; font-weight: 500; }
+    .badge-pdf { border-color: #9a6f2e; color: #9a6f2e; background: #fdf3e3; }
+    .badge-mp3 { border-color: #2d7a4f; color: #2d7a4f; background: #edf7f1; }
+    .badge-miss { border-color: var(--miss-bdr); color: var(--text3); background: var(--miss-bg); }
+    .song-arrow { color: var(--text3); font-size: 1.1rem; }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>詩歌</h1>
-    <div class="icon-grid">
+  <div class="page">
+    <a href="/philadelphia.github.io/zh-hant/index.html" class="back">繁體中文</a>
+    <h1 class="sec-title">詩歌</h1>
+    <div class="song-list">
+      <p style="color:var(--text2);padding:2rem 0">尚未上傳詩歌 — 請在 poetry/ 目錄下建立各詩歌子資料夾</p>
     </div>
   </div>
 </body>

@@ -2,13 +2,535 @@
 <html lang="zh-hans">
 <head>
   <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>圣经难字粤音</title>
   <link rel="stylesheet" href="/philadelphia.github.io/assets/css/style.css"/>
+  <style>
+    /* ── Testament section header ── */
+    .testament-block {
+      margin-bottom: 2.5rem;
+    }
+    .testament-header {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-bottom: 1.5rem;
+    }
+    .testament-pill {
+      font-family: var(--font-s);
+      font-size: .95rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--gold);
+      padding: .3rem .9rem;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+    .testament-line {
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      border-radius: 99px;
+    }
+    /* ── Category section ── */
+    .cat-block {
+      margin-bottom: 1.8rem;
+      padding: 1.2rem 1.2rem .8rem;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow);
+    }
+    .cat-header {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin-bottom: 1rem;
+    }
+    .cat-label {
+      font-family: var(--font-s);
+      font-size: .88rem;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: .06em;
+    }
+    .cat-count {
+      font-size: .72rem;
+      color: var(--text3);
+      background: var(--surf2);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: .1rem .5rem;
+    }
+    /* ── Book grid ── */
+    .books-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+      gap: .55rem;
+    }
+    .book-tile {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r);
+      text-align: center;
+      padding: .3rem .15rem;
+      transition: all .18s;
+      position: relative;
+    }
+    .book-tile.avail {
+      background: var(--gold-bg);
+      border: 1.5px solid var(--gold-lt);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .book-tile.avail:hover {
+      background: var(--gold);
+      border-color: var(--gold);
+      transform: scale(1.08);
+      box-shadow: 0 4px 14px rgba(154,111,46,.3);
+    }
+    .book-tile.avail:hover .book-abbr,
+    .book-tile.avail:hover .book-fullname { color: #fff !important; }
+    .book-tile.miss {
+      background: var(--miss-bg);
+      border: 1.5px dashed var(--miss-bdr);
+    }
+    .book-num {
+      position: absolute;
+      top: 3px; right: 5px;
+      font-size: .48rem;
+      color: var(--text3);
+      font-family: var(--font-b);
+    }
+    .book-abbr {
+      font-family: var(--font-s);
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .book-tile.avail .book-abbr { color: var(--gold); }
+    .book-tile.miss  .book-abbr { color: var(--text3); }
+    .book-fullname {
+      font-size: .52rem;
+      margin-top: .2rem;
+      line-height: 1.2;
+    }
+    .book-tile.avail .book-fullname { color: var(--text2); }
+    .book-tile.miss  .book-fullname { color: var(--text3); }
+    /* ── Summary bar ── */
+    .stat-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+      padding: .85rem 1.1rem;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow);
+    }
+    .stat-item { display: flex; align-items: center; gap: .5rem; font-size: .85rem; }
+    .stat-dot { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+    .stat-avail { background: var(--gold-bg); border: 1.5px solid var(--gold-lt); }
+    .stat-miss  { background: var(--miss-bg); border: 1.5px dashed var(--miss-bdr); }
+    @media (max-width: 400px) {
+      .books-grid { grid-template-columns: repeat(auto-fill, minmax(62px,1fr)); gap:.4rem; }
+      .book-abbr { font-size: .95rem; }
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>圣经难字粤音</h1>
-    <div class="icon-grid">
+  <div class="page">
+    <a href="/philadelphia.github.io/zh-hans/index.html" class="back">简体中文</a>
+    <h1 class="sec-title">圣经难字粤音</h1>
+    <div class="stat-bar">
+      <div class="stat-item"><span class="stat-dot stat-avail"></span><span>已上傳 <strong>0</strong> / 66 卷</span></div>
+      <div class="stat-item"><span class="stat-dot stat-miss"></span><span>尚未上傳</span></div>
+    </div>
+    <div class="testament-block">
+      <div class="testament-header"><span class="testament-pill">旧约圣经</span><div class="testament-line"></div></div>
+      <div class="cat-block">
+        <div class="cat-header"><span class="cat-label">律法書</span><span class="cat-count">0/5</span></div>
+        <div class="books-grid">
+          <div class="book-tile miss" title="創世記（未上傳）">
+            <span class="book-num">01</span>
+            <span class="book-abbr">創</span>
+            <span class="book-fullname">創世記</span>
+          </div>
+          <div class="book-tile miss" title="出埃及記（未上傳）">
+            <span class="book-num">02</span>
+            <span class="book-abbr">出</span>
+            <span class="book-fullname">出埃及記</span>
+          </div>
+          <div class="book-tile miss" title="利未記（未上傳）">
+            <span class="book-num">03</span>
+            <span class="book-abbr">利</span>
+            <span class="book-fullname">利未記</span>
+          </div>
+          <div class="book-tile miss" title="民數記（未上傳）">
+            <span class="book-num">04</span>
+            <span class="book-abbr">民</span>
+            <span class="book-fullname">民數記</span>
+          </div>
+          <div class="book-tile miss" title="申命記（未上傳）">
+            <span class="book-num">05</span>
+            <span class="book-abbr">申</span>
+            <span class="book-fullname">申命記</span>
+          </div>
+        </div>
+      </div>
+      <div class="cat-block">
+        <div class="cat-header"><span class="cat-label">歷史書</span><span class="cat-count">0/12</span></div>
+        <div class="books-grid">
+          <div class="book-tile miss" title="約書亞記（未上傳）">
+            <span class="book-num">06</span>
+            <span class="book-abbr">書</span>
+            <span class="book-fullname">約書亞記</span>
+          </div>
+          <div class="book-tile miss" title="士師記（未上傳）">
+            <span class="book-num">07</span>
+            <span class="book-abbr">士</span>
+            <span class="book-fullname">士師記</span>
+          </div>
+          <div class="book-tile miss" title="路得記（未上傳）">
+            <span class="book-num">08</span>
+            <span class="book-abbr">得</span>
+            <span class="book-fullname">路得記</span>
+          </div>
+          <div class="book-tile miss" title="撒母耳記上（未上傳）">
+            <span class="book-num">09</span>
+            <span class="book-abbr">撒上</span>
+            <span class="book-fullname">撒母耳記上</span>
+          </div>
+          <div class="book-tile miss" title="撒母耳記下（未上傳）">
+            <span class="book-num">10</span>
+            <span class="book-abbr">撒下</span>
+            <span class="book-fullname">撒母耳記下</span>
+          </div>
+          <div class="book-tile miss" title="列王紀上（未上傳）">
+            <span class="book-num">11</span>
+            <span class="book-abbr">王上</span>
+            <span class="book-fullname">列王紀上</span>
+          </div>
+          <div class="book-tile miss" title="列王紀下（未上傳）">
+            <span class="book-num">12</span>
+            <span class="book-abbr">王下</span>
+            <span class="book-fullname">列王紀下</span>
+          </div>
+          <div class="book-tile miss" title="歷代志上（未上傳）">
+            <span class="book-num">13</span>
+            <span class="book-abbr">代上</span>
+            <span class="book-fullname">歷代志上</span>
+          </div>
+          <div class="book-tile miss" title="歷代志下（未上傳）">
+            <span class="book-num">14</span>
+            <span class="book-abbr">代下</span>
+            <span class="book-fullname">歷代志下</span>
+          </div>
+          <div class="book-tile miss" title="以斯拉記（未上傳）">
+            <span class="book-num">15</span>
+            <span class="book-abbr">拉</span>
+            <span class="book-fullname">以斯拉記</span>
+          </div>
+          <div class="book-tile miss" title="尼希米記（未上傳）">
+            <span class="book-num">16</span>
+            <span class="book-abbr">尼</span>
+            <span class="book-fullname">尼希米記</span>
+          </div>
+          <div class="book-tile miss" title="以斯帖記（未上傳）">
+            <span class="book-num">17</span>
+            <span class="book-abbr">斯</span>
+            <span class="book-fullname">以斯帖記</span>
+          </div>
+        </div>
+      </div>
+      <div class="cat-block">
+        <div class="cat-header"><span class="cat-label">詩歌書</span><span class="cat-count">0/5</span></div>
+        <div class="books-grid">
+          <div class="book-tile miss" title="約伯記（未上傳）">
+            <span class="book-num">18</span>
+            <span class="book-abbr">伯</span>
+            <span class="book-fullname">約伯記</span>
+          </div>
+          <div class="book-tile miss" title="詩篇（未上傳）">
+            <span class="book-num">19</span>
+            <span class="book-abbr">詩</span>
+            <span class="book-fullname">詩篇</span>
+          </div>
+          <div class="book-tile miss" title="箴言（未上傳）">
+            <span class="book-num">20</span>
+            <span class="book-abbr">箴</span>
+            <span class="book-fullname">箴言</span>
+          </div>
+          <div class="book-tile miss" title="傳道書（未上傳）">
+            <span class="book-num">21</span>
+            <span class="book-abbr">傳</span>
+            <span class="book-fullname">傳道書</span>
+          </div>
+          <div class="book-tile miss" title="雅歌（未上傳）">
+            <span class="book-num">22</span>
+            <span class="book-abbr">歌</span>
+            <span class="book-fullname">雅歌</span>
+          </div>
+        </div>
+      </div>
+      <div class="cat-block">
+        <div class="cat-header"><span class="cat-label">大先知書</span><span class="cat-count">0/5</span></div>
+        <div class="books-grid">
+          <div class="book-tile miss" title="以賽亞書（未上傳）">
+            <span class="book-num">23</span>
+            <span class="book-abbr">賽</span>
+            <span class="book-fullname">以賽亞書</span>
+          </div>
+          <div class="book-tile miss" title="耶利米書（未上傳）">
+            <span class="book-num">24</span>
+            <span class="book-abbr">耶</span>
+            <span class="book-fullname">耶利米書</span>
+          </div>
+          <div class="book-tile miss" title="耶利米哀歌（未上傳）">
+            <span class="book-num">25</span>
+            <span class="book-abbr">哀</span>
+            <span class="book-fullname">耶利米哀歌</span>
+          </div>
+          <div class="book-tile miss" title="以西結書（未上傳）">
+            <span class="book-num">26</span>
+            <span class="book-abbr">結</span>
+            <span class="book-fullname">以西結書</span>
+          </div>
+          <div class="book-tile miss" title="但以理書（未上傳）">
+            <span class="book-num">27</span>
+            <span class="book-abbr">但</span>
+            <span class="book-fullname">但以理書</span>
+          </div>
+        </div>
+      </div>
+      <div class="cat-block">
+        <div class="cat-header"><span class="cat-label">小先知書</span><span class="cat-count">0/12</span></div>
+        <div class="books-grid">
+          <div class="book-tile miss" title="何西阿書（未上傳）">
+            <span class="book-num">28</span>
+            <span class="book-abbr">何</span>
+            <span class="book-fullname">何西阿書</span>
+          </div>
+          <div class="book-tile miss" title="約珥書（未上傳）">
+            <span class="book-num">29</span>
+            <span class="book-abbr">珥</span>
+            <span class="book-fullname">約珥書</span>
+          </div>
+          <div class="book-tile miss" title="阿摩司書（未上傳）">
+            <span class="book-num">30</span>
+            <span class="book-abbr">摩</span>
+            <span class="book-fullname">阿摩司書</span>
+          </div>
+          <div class="book-tile miss" title="俄巴底亞書（未上傳）">
+            <span class="book-num">31</span>
+            <span class="book-abbr">俄</span>
+            <span class="book-fullname">俄巴底亞書</span>
+          </div>
+          <div class="book-tile miss" title="約拿書（未上傳）">
+            <span class="book-num">32</span>
+            <span class="book-abbr">拿</span>
+            <span class="book-fullname">約拿書</span>
+          </div>
+          <div class="book-tile miss" title="彌迦書（未上傳）">
+            <span class="book-num">33</span>
+            <span class="book-abbr">彌</span>
+            <span class="book-fullname">彌迦書</span>
+          </div>
+          <div class="book-tile miss" title="鴻書（未上傳）">
+            <span class="book-num">34</span>
+            <span class="book-abbr">鴻</span>
+            <span class="book-fullname">鴻書</span>
+          </div>
+          <div class="book-tile miss" title="哈巴谷書（未上傳）">
+            <span class="book-num">35</span>
+            <span class="book-abbr">哈</span>
+            <span class="book-fullname">哈巴谷書</span>
+          </div>
+          <div class="book-tile miss" title="西番雅書（未上傳）">
+            <span class="book-num">36</span>
+            <span class="book-abbr">番</span>
+            <span class="book-fullname">西番雅書</span>
+          </div>
+          <div class="book-tile miss" title="哈該書（未上傳）">
+            <span class="book-num">37</span>
+            <span class="book-abbr">該</span>
+            <span class="book-fullname">哈該書</span>
+          </div>
+          <div class="book-tile miss" title="撒迦利亞書（未上傳）">
+            <span class="book-num">38</span>
+            <span class="book-abbr">亞</span>
+            <span class="book-fullname">撒迦利亞書</span>
+          </div>
+          <div class="book-tile miss" title="瑪拉基書（未上傳）">
+            <span class="book-num">39</span>
+            <span class="book-abbr">瑪</span>
+            <span class="book-fullname">瑪拉基書</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="testament-block">
+      <div class="testament-header"><span class="testament-pill">新约圣经</span><div class="testament-line"></div></div>
+      <div class="cat-block">
+        <div class="cat-header"><span class="cat-label">福音書</span><span class="cat-count">0/4</span></div>
+        <div class="books-grid">
+          <div class="book-tile miss" title="馬太福音（未上傳）">
+            <span class="book-num">40</span>
+            <span class="book-abbr">太</span>
+            <span class="book-fullname">馬太福音</span>
+          </div>
+          <div class="book-tile miss" title="馬可福音（未上傳）">
+            <span class="book-num">41</span>
+            <span class="book-abbr">可</span>
+            <span class="book-fullname">馬可福音</span>
+          </div>
+          <div class="book-tile miss" title="路加福音（未上傳）">
+            <span class="book-num">42</span>
+            <span class="book-abbr">路</span>
+            <span class="book-fullname">路加福音</span>
+          </div>
+          <div class="book-tile miss" title="約翰福音（未上傳）">
+            <span class="book-num">43</span>
+            <span class="book-abbr">約</span>
+            <span class="book-fullname">約翰福音</span>
+          </div>
+        </div>
+      </div>
+      <div class="cat-block">
+        <div class="cat-header"><span class="cat-label">使徒行傳</span><span class="cat-count">0/1</span></div>
+        <div class="books-grid">
+          <div class="book-tile miss" title="使徒行傳（未上傳）">
+            <span class="book-num">44</span>
+            <span class="book-abbr">徒</span>
+            <span class="book-fullname">使徒行傳</span>
+          </div>
+        </div>
+      </div>
+      <div class="cat-block">
+        <div class="cat-header"><span class="cat-label">書信</span><span class="cat-count">0/21</span></div>
+        <div class="books-grid">
+          <div class="book-tile miss" title="羅馬書（未上傳）">
+            <span class="book-num">45</span>
+            <span class="book-abbr">羅</span>
+            <span class="book-fullname">羅馬書</span>
+          </div>
+          <div class="book-tile miss" title="哥林多前書（未上傳）">
+            <span class="book-num">46</span>
+            <span class="book-abbr">林前</span>
+            <span class="book-fullname">哥林多前書</span>
+          </div>
+          <div class="book-tile miss" title="哥林多後書（未上傳）">
+            <span class="book-num">47</span>
+            <span class="book-abbr">林後</span>
+            <span class="book-fullname">哥林多後書</span>
+          </div>
+          <div class="book-tile miss" title="加拉太書（未上傳）">
+            <span class="book-num">48</span>
+            <span class="book-abbr">加</span>
+            <span class="book-fullname">加拉太書</span>
+          </div>
+          <div class="book-tile miss" title="以弗所書（未上傳）">
+            <span class="book-num">49</span>
+            <span class="book-abbr">弗</span>
+            <span class="book-fullname">以弗所書</span>
+          </div>
+          <div class="book-tile miss" title="腓立比書（未上傳）">
+            <span class="book-num">50</span>
+            <span class="book-abbr">腓</span>
+            <span class="book-fullname">腓立比書</span>
+          </div>
+          <div class="book-tile miss" title="歌羅西書（未上傳）">
+            <span class="book-num">51</span>
+            <span class="book-abbr">西</span>
+            <span class="book-fullname">歌羅西書</span>
+          </div>
+          <div class="book-tile miss" title="帖撒羅尼迦前書（未上傳）">
+            <span class="book-num">52</span>
+            <span class="book-abbr">帖前</span>
+            <span class="book-fullname">帖撒羅尼迦前書</span>
+          </div>
+          <div class="book-tile miss" title="帖撒羅尼迦後書（未上傳）">
+            <span class="book-num">53</span>
+            <span class="book-abbr">帖後</span>
+            <span class="book-fullname">帖撒羅尼迦後書</span>
+          </div>
+          <div class="book-tile miss" title="提摩太前書（未上傳）">
+            <span class="book-num">54</span>
+            <span class="book-abbr">提前</span>
+            <span class="book-fullname">提摩太前書</span>
+          </div>
+          <div class="book-tile miss" title="提摩太後書（未上傳）">
+            <span class="book-num">55</span>
+            <span class="book-abbr">提後</span>
+            <span class="book-fullname">提摩太後書</span>
+          </div>
+          <div class="book-tile miss" title="提多書（未上傳）">
+            <span class="book-num">56</span>
+            <span class="book-abbr">多</span>
+            <span class="book-fullname">提多書</span>
+          </div>
+          <div class="book-tile miss" title="腓利門書（未上傳）">
+            <span class="book-num">57</span>
+            <span class="book-abbr">門</span>
+            <span class="book-fullname">腓利門書</span>
+          </div>
+          <div class="book-tile miss" title="希伯來書（未上傳）">
+            <span class="book-num">58</span>
+            <span class="book-abbr">來</span>
+            <span class="book-fullname">希伯來書</span>
+          </div>
+          <div class="book-tile miss" title="雅各書（未上傳）">
+            <span class="book-num">59</span>
+            <span class="book-abbr">雅</span>
+            <span class="book-fullname">雅各書</span>
+          </div>
+          <div class="book-tile miss" title="彼得前書（未上傳）">
+            <span class="book-num">60</span>
+            <span class="book-abbr">彼前</span>
+            <span class="book-fullname">彼得前書</span>
+          </div>
+          <div class="book-tile miss" title="彼得後書（未上傳）">
+            <span class="book-num">61</span>
+            <span class="book-abbr">彼後</span>
+            <span class="book-fullname">彼得後書</span>
+          </div>
+          <div class="book-tile miss" title="約翰一書（未上傳）">
+            <span class="book-num">62</span>
+            <span class="book-abbr">約一</span>
+            <span class="book-fullname">約翰一書</span>
+          </div>
+          <div class="book-tile miss" title="約翰二書（未上傳）">
+            <span class="book-num">63</span>
+            <span class="book-abbr">約二</span>
+            <span class="book-fullname">約翰二書</span>
+          </div>
+          <div class="book-tile miss" title="約翰三書（未上傳）">
+            <span class="book-num">64</span>
+            <span class="book-abbr">約三</span>
+            <span class="book-fullname">約翰三書</span>
+          </div>
+          <div class="book-tile miss" title="猶大書（未上傳）">
+            <span class="book-num">65</span>
+            <span class="book-abbr">猶</span>
+            <span class="book-fullname">猶大書</span>
+          </div>
+        </div>
+      </div>
+      <div class="cat-block">
+        <div class="cat-header"><span class="cat-label">啟示錄</span><span class="cat-count">0/1</span></div>
+        <div class="books-grid">
+          <div class="book-tile miss" title="啟示錄（未上傳）">
+            <span class="book-num">66</span>
+            <span class="book-abbr">啟</span>
+            <span class="book-fullname">啟示錄</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </body>
