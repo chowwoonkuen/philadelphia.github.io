@@ -5,6 +5,7 @@ lang  = sys.argv[1]
 repo  = sys.argv[2]
 title = sys.argv[3]
 back  = sys.argv[4]
+ver   = sys.argv[5] if len(sys.argv) > 5 else 'dev'
 
 MONTHS = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月']
 DAYS   = [31,29,31,30,31,30,31,31,30,31,30,31]
@@ -29,7 +30,7 @@ html = f'''<!DOCTYPE html>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{title}</title>
-  <link rel="stylesheet" href="/{repo}/assets/css/style.css"/>
+  <link rel="stylesheet" href="/{repo}/assets/css/style.css?v={ver}"/>
   <style>
     .progress-row {{
       display: flex;
@@ -186,7 +187,7 @@ for mi, mname in enumerate(MONTHS):
     for d in range(1, days + 1):
         date_str = f'{mm:02d}.{d:02d}'
         if (mm, d) in existing:
-            url = f"{base}/{date_str}.pdf"
+            url = f"{base}/{date_str}.pdf?v={ver}"
             html += f'        <a href="{url}" target="_blank" class="day-tile avail" data-date="{date_str}" title="{date_str}（點擊閱讀）">\n'
             html += f'          <span class="day-num">{d}</span><div class="day-dot"></div>\n        </a>\n'
         else:
