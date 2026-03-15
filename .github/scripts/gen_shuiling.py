@@ -5,6 +5,7 @@ lang  = sys.argv[1]
 repo  = sys.argv[2]
 title = sys.argv[3]
 back  = sys.argv[4]
+ver   = sys.argv[5] if len(sys.argv) > 5 else 'dev'
 
 src_dir   = f"{lang}/shuiling"
 thumb_dir = f"/{repo}/assets/thumbs/{lang}/shuiling"
@@ -19,7 +20,7 @@ html = f'''<!DOCTYPE html>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{title}</title>
-  <link rel="stylesheet" href="/{repo}/assets/css/style.css"/>
+  <link rel="stylesheet" href="/{repo}/assets/css/style.css?v={ver}"/>
   <style>
     .lib-grid {{
       display: grid;
@@ -101,8 +102,8 @@ html = f'''<!DOCTYPE html>
 
 for fname in files:
     stem      = fname[:-4]
-    thumb_url = f"{thumb_dir}/{stem}.png"
-    pdf_url   = f"{base}/{fname}"
+    thumb_url = f"{thumb_dir}/{stem}.png?v={ver}"
+    pdf_url   = f"{base}/{fname}?v={ver}"
     html += f'''      <div class="book-card">
         <div class="thumb-wrap">
           <div class="skeleton"></div>
