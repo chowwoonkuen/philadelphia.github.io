@@ -116,7 +116,3 @@ Shuiling thumbnails are regenerated on every push. If an old cropped thumbnail i
 - Fonts are loaded from `fonts.bunny.net` (privacy-friendly, no Google tracking).
 - All pages are fully responsive — works on mobile and desktop.
 - The workflow file is `.github/workflows/generate-pages.yml`. Trigger a manual deploy any time via **Actions → Build & Deploy → Run workflow**.
-EOF
-
-cp /home/claude/build/README.md /mnt/user-data/outputs/README.md
-echo "Done"
