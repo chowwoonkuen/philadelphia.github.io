@@ -6,6 +6,7 @@ lang  = sys.argv[1]
 repo  = sys.argv[2]
 title = sys.argv[3]
 back  = sys.argv[4]
+ver   = sys.argv[5] if len(sys.argv) > 5 else 'dev'
 
 # ── Full 66-book list with abbreviation, full name, category ──────────────────
 BOOKS = [
@@ -67,7 +68,7 @@ html = f'''<!DOCTYPE html>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{title}</title>
-  <link rel="stylesheet" href="/{repo}/assets/css/style.css"/>
+  <link rel="stylesheet" href="/{repo}/assets/css/style.css?v={ver}"/>
   <style>
     /* ── Testament section header ── */
     .testament-block {{
@@ -229,7 +230,7 @@ def render_testament(heading, cat_list):
         out += f'        <div class="books-grid">\n'
         for (num, abbr, name, _) in books:
             if num in existing:
-                url = f"{base}/{existing[num]}"
+                url = f"{base}/{existing[num]}?v={ver}"
                 out += f'          <a href="{url}" target="_blank" class="book-tile avail" title="{name}（點擊閱讀）">\n'
             else:
                 out += f'          <div class="book-tile miss" title="{name}（未上傳）">\n'
