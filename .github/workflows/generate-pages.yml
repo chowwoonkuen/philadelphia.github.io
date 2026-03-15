@@ -1,4 +1,18 @@
-name: Generate Static Pages, Thumbnails & Deploy to Pages
+name: Build & Deploy
+
+# ─────────────────────────────────────────────────────────────────────────────
+# HOW TO ADD CONTENT  (no HTML editing ever needed — just upload files & push)
+#
+#   屬靈書  / 属灵书   → drop PDF into  zh-hant/shuiling/  or  zh-hans/shuiling/
+#   聖經    / 圣经     → drop PDF into  zh-hant/bible/     or  zh-hans/bible/
+#                        name it so the file contains the 2-digit book number
+#                        e.g. 創世記01.pdf  出埃及記02.pdf  啟示錄66.pdf
+#   靈修資料/ 灵修资料  → drop PDF into  zh-hant/devotional/ or zh-hans/devotional/
+#                        name it  MM.DD.pdf  e.g. 01.01.pdf  12.31.pdf
+#   詩歌    / 诗歌     → create a sub-folder per song, put one PDF + one MP3 inside
+#                        e.g. zh-hant/poetry/01 歌名/歌名.pdf
+#                             zh-hant/poetry/01 歌名/歌名.mp3
+# ─────────────────────────────────────────────────────────────────────────────
 
 on:
   push:
@@ -11,182 +25,863 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: true
 
 jobs:
-  generate:
+  build:
     runs-on: ubuntu-latest
-    outputs:
-      site-dir: .
+    env:
+      REPO: ${{ github.event.repository.name }}
+
     steps:
-      # -------------------------------------------------
-      # 1️⃣ Checkout repository
-      # -------------------------------------------------
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # -------------------------------------------------
-      # 2️⃣ Install system tools
-      # -------------------------------------------------
-      - name: Install dependencies
-        run: |
-          sudo apt-get update && sudo apt-get install -y imagemagick ghostscript
+      - name: Install tools
+        run: sudo apt-get update -qq && sudo apt-get install -y imagemagick ghostscript
 
-      # -------------------------------------------------
-      # 3️⃣ Prepare folder structure (preserve existing assets)
-      # -------------------------------------------------
-      - name: Prepare directories
-        run: |
-          mkdir -p assets/thumbs/zh-hant/{shuiling,bible,poetry,devotional}
-          mkdir -p assets/thumbs/zh-hans/{shuiling,bible,poetry,devotional}
-          mkdir -p assets/css
-          mkdir -p zh-hant/{shuiling,bible,poetry,devotional}
-          mkdir -p zh-hans/{shuiling,bible,poetry,devotional}
-
-          # Preserve any existing content (no‑op if directories are empty)
-          cp -r zh-hant/* zh-hant/ 2>/dev/null || true
-          cp -r zh-hans/* zh-hans/ 2>/dev/null || true
-
-          # ----‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑‑-
-          # Copy the CSS file only when the source exists **and**
-          # the destination is a different path.
-          # -------------------------------------------------
-          if [ -f assets/css/style.css ]; then
-            echo "CSS already in place."
-          elif [ -f assets/style.css ]; then
-            cp assets/style.css assets/css/style.css
-            echo "Copied assets/style.css → assets/css/style.css"
-          fi
-
-      # -------------------------------------------------
-      # 4️⃣ Generate PDF thumbnails (writes into assets/thumbs)
-      # -------------------------------------------------
-      - name: Generate PDF Thumbnails
-        run: |
-          set -euo pipefail
-          generate_thumbnails() {
-            local src_dir="$1"
-            local out_dir="$2"
-            mkdir -p "$out_dir"
-            for file in "$src_dir"/*.pdf; do
-              [ -e "$file" ] || continue
-              local name=$(basename "$file" .pdf)
-              convert -density 150 "$file"[0] -thumbnail 200x200^ -gravity center -extent 200x200 "$out_dir/$name.png"
-            done
-          }
-
-          generate_thumbnails zh-hant/shuiling assets/thumbs/zh-hant/shuiling
-          generate_thumbnails zh-hant/bible    assets/thumbs/zh-hant/bible
-          generate_thumbnails zh-hant/poetry   assets/thumbs/zh-hant/poetry
-          generate_thumbnails zh-hant/devotional assets/thumbs/zh-hant/devotional
-
-          generate_thumbnails zh-hans/shuiling assets/thumbs/zh-hans/shuiling
-          generate_thumbnails zh-hans/bible    assets/thumbs/zh-hans/bible
-          generate_thumbnails zh-hans/poetry   assets/thumbs/zh-hans/poetry
-          generate_thumbnails zh-hans/devotional assets/thumbs/zh-hans/devotional
-
-          sleep 2
-
-      # -------------------------------------------------
-      # 5️⃣ Generate HTML pages (using echo) – **fixed paths**
-      # -------------------------------------------------
-      - name: Generate HTML Pages (using echo)
-        run: |
-          set -euo pipefail
-          REPO="philadelphia.github.io"   # repository name for correct URLs
-
-          generate_html() {
-            local lang=$1
-            local cat=$2
-            local title=$3
-            local out_dir="$lang/$cat"
-            mkdir -p "$out_dir"
-
-            {
-              echo '<!DOCTYPE html>'
-              echo "<html lang=\"$lang\">"
-              echo '<head>'
-              echo '  <meta charset="UTF-8"/>'
-              echo "  <title>$title</title>"
-              echo "  <link rel=\"stylesheet\" href=\"/${REPO}/assets/css/style.css\"/>"
-              echo '</head>'
-              echo '<body>'
-              echo '  <div class="container">'
-              echo "    <h1>$title</h1>"
-              echo '    <div class="icon-grid">'
-
-              for file in "$lang/$cat"/*.pdf; do
-                [ -e "$file" ] || continue
-                fname=$(basename "$file")
-                thumb="/${REPO}/assets/thumbs/$lang/$cat/${fname%.pdf}.png"
-                echo "<a href=\"/${REPO}/$lang/$cat/$fname\" class=\"icon\" download><img src=\"$thumb\" alt=\"$fname\"/><span>$fname</span></a>"
-              done
-
-              echo '    </div>'
-              echo '  </div>'
-              echo '</body>'
-              echo '</html>'
-            } > "$out_dir/index.html"
-          }
-
-          generate_html zh-hant shuiling   "屬靈書"
-          generate_html zh-hant bible      "聖經難字粵音"
-          generate_html zh-hant poetry     "詩歌"
-          generate_html zh-hant devotional "靈修資料"
-
-          generate_html zh-hans shuiling   "属灵书"
-          generate_html zh-hans bible      "圣经难字粤音"
-          generate_html zh-hans poetry     "诗歌"
-          generate_html zh-hans devotional "灵修资料"
-
-      # -------------------------------------------------
-      # 6️⃣ (Optional) Commit generated files back to repo
-      # -------------------------------------------------
-      - name: (Optional) Commit generated files back to repo
-        if: ${{ always() }}
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add assets zh-hant zh-hans || true
-          if [ -n "$(git status --porcelain assets zh-hant zh-hans)" ]; then
-            git commit -m "Auto‑generate pages and thumbnails" || true
-            git push origin main || true
-          else
-            echo "No changes to commit"
-          fi
-
-      # -------------------------------------------------
-      # 7️⃣ Upload the **entire repository root** as the Pages artifact
-      # -------------------------------------------------
-      - name: Upload site artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: site
-          path: .   # includes HTML, CSS, PDFs, thumbnails, everything
-
-  deploy:
-    needs: generate
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-    steps:
-      - name: Setup Pages
+      - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Download site artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: site
-          path: .
+      - name: Ensure directories
+        run: |
+          for lang in zh-hant zh-hans; do
+            for cat in shuiling devotional poetry bible; do
+              mkdir -p "$lang/$cat"
+              mkdir -p "assets/thumbs/$lang/$cat"
+            done
+          done
+          mkdir -p assets/css
 
-      - name: Upload artifact to Pages
+      # ── Shuiling thumbnails (portrait, skips existing) ──────────────────────
+      - name: Generate shuiling thumbnails
+        run: |
+          gen_thumbs() {
+            local src="$1" dst="$2"
+            for f in "$src"/*.pdf; do
+              [ -e "$f" ] || continue
+              local name; name=$(basename "$f" .pdf)
+              [ -f "$dst/$name.png" ] && continue
+              convert -density 150 "$f"[0] \
+                -resize 300x420 -gravity center \
+                -background '#1a1714' -extent 300x420 \
+                "$dst/$name.png" 2>/dev/null || true
+            done
+          }
+          gen_thumbs zh-hant/shuiling assets/thumbs/zh-hant/shuiling
+          gen_thumbs zh-hans/shuiling assets/thumbs/zh-hans/shuiling
+
+      # ── Write Python generator scripts ──────────────────────────────────────
+      - name: Write generator scripts
+        run: |
+          # ── gen_shuiling.py ──────────────────────────────────────────────────
+          cat > /tmp/gen_shuiling.py << 'PYEOF'
+#!/usr/bin/env python3
+import os, sys
+
+lang  = sys.argv[1]   # zh-hant / zh-hans
+repo  = sys.argv[2]   # philadelphia.github.io
+title = sys.argv[3]   # 屬靈書 / 属灵书
+back  = sys.argv[4]   # 繁體中文 / 简体中文
+
+src_dir  = f"{lang}/shuiling"
+thumb_dir = f"/{repo}/assets/thumbs/{lang}/shuiling"
+base     = f"/{repo}/{lang}/shuiling"
+back_url = f"/{repo}/{lang}/index.html"
+
+files = sorted([f for f in os.listdir(src_dir) if f.endswith('.pdf')]) if os.path.isdir(src_dir) else []
+
+html = f'''<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{title}</title>
+  <link rel="stylesheet" href="/{repo}/assets/css/style.css"/>
+  <style>
+    .lib-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }}
+    .book-card {{
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all .25s;
+    }}
+    .book-card:hover {{ border-color: var(--gold-dim); transform: translateY(-3px); box-shadow: var(--shadow); }}
+    .book-thumb {{
+      width: 100%;
+      aspect-ratio: 5/7;
+      object-fit: cover;
+      display: block;
+      background: var(--surf2);
+    }}
+    .book-thumb-placeholder {{
+      width: 100%;
+      aspect-ratio: 5/7;
+      background: var(--surf2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text3);
+      font-size: .8rem;
+    }}
+    .book-info {{
+      padding: .85rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+    }}
+    .book-name {{
+      font-size: .82rem;
+      color: var(--text);
+      line-height: 1.45;
+      word-break: break-word;
+    }}
+    .book-actions {{
+      display: flex;
+      gap: .5rem;
+      margin-top: auto;
+    }}
+    .book-actions .btn {{ flex: 1; justify-content: center; font-size: .78rem; padding: .45rem .5rem; }}
+    @media (max-width: 480px) {{
+      .lib-grid {{ grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }}
+    }}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a href="{back_url}" class="back">{back}</a>
+    <h1 class="sec-title">{title}</h1>
+    <div class="lib-grid">
+'''
+
+for fname in files:
+    stem = fname[:-4]
+    thumb_url = f"{thumb_dir}/{stem}.png"
+    pdf_url   = f"{base}/{fname}"
+    has_thumb = os.path.isfile(f"assets/thumbs/{lang}/shuiling/{stem}.png")
+    thumb_el  = f'<img class="book-thumb" src="{thumb_url}" alt="{stem}" loading="lazy"/>' if has_thumb else f'<div class="book-thumb-placeholder">無預覽</div>'
+    html += f'''      <div class="book-card">
+        {thumb_el}
+        <div class="book-info">
+          <p class="book-name">{stem}</p>
+          <div class="book-actions">
+            <a href="{pdf_url}" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="{pdf_url}" download class="btn btn-gold">下載</a>
+          </div>
+        </div>
+      </div>
+'''
+
+if not files:
+    html += '      <p style="color:var(--text2);grid-column:1/-1">尚無資料 — 上傳 PDF 後自動顯示</p>\n'
+
+html += '''    </div>
+  </div>
+</body>
+</html>
+'''
+
+out = f"{lang}/shuiling/index.html"
+os.makedirs(os.path.dirname(out), exist_ok=True)
+with open(out, 'w', encoding='utf-8') as f:
+    f.write(html)
+print(f"Written {out}")
+PYEOF
+
+          # ── gen_bible.py ─────────────────────────────────────────────────────
+          cat > /tmp/gen_bible.py << 'PYEOF'
+#!/usr/bin/env python3
+import os, sys, re
+
+lang  = sys.argv[1]
+repo  = sys.argv[2]
+title = sys.argv[3]
+back  = sys.argv[4]
+
+BOOKS = [
+    (1,'創','創世記','律法書'),(2,'出','出埃及記','律法書'),(3,'利','利未記','律法書'),
+    (4,'民','民數記','律法書'),(5,'申','申命記','律法書'),
+    (6,'書','約書亞記','歷史書'),(7,'士','士師記','歷史書'),(8,'得','路得記','歷史書'),
+    (9,'撒上','撒母耳記上','歷史書'),(10,'撒下','撒母耳記下','歷史書'),
+    (11,'王上','列王紀上','歷史書'),(12,'王下','列王紀下','歷史書'),
+    (13,'代上','歷代志上','歷史書'),(14,'代下','歷代志下','歷史書'),
+    (15,'拉','以斯拉記','歷史書'),(16,'尼','尼希米記','歷史書'),(17,'斯','以斯帖記','歷史書'),
+    (18,'伯','約伯記','詩歌書'),(19,'詩','詩篇','詩歌書'),(20,'箴','箴言','詩歌書'),
+    (21,'傳','傳道書','詩歌書'),(22,'歌','雅歌','詩歌書'),
+    (23,'賽','以賽亞書','大先知書'),(24,'耶','耶利米書','大先知書'),
+    (25,'哀','耶利米哀歌','大先知書'),(26,'結','以西結書','大先知書'),(27,'但','但以理書','大先知書'),
+    (28,'何','何西阿書','小先知書'),(29,'珥','約珥書','小先知書'),(30,'摩','阿摩司書','小先知書'),
+    (31,'俄','俄巴底亞書','小先知書'),(32,'拿','約拿書','小先知書'),(33,'彌','彌迦書','小先知書'),
+    (34,'鴻','鴻姆書','小先知書'),(35,'哈','哈巴谷書','小先知書'),(36,'番','西番雅書','小先知書'),
+    (37,'該','哈該書','小先知書'),(38,'亞','撒迦利亞書','小先知書'),(39,'瑪','瑪拉基書','小先知書'),
+    (40,'太','馬太福音','福音書'),(41,'可','馬可福音','福音書'),
+    (42,'路','路加福音','福音書'),(43,'約','約翰福音','福音書'),
+    (44,'徒','使徒行傳','使徒行傳'),
+    (45,'羅','羅馬書','書信'),(46,'林前','哥林多前書','書信'),(47,'林後','哥林多後書','書信'),
+    (48,'加','加拉太書','書信'),(49,'弗','以弗所書','書信'),(50,'腓','腓立比書','書信'),
+    (51,'西','歌羅西書','書信'),(52,'帖前','帖撒羅尼迦前書','書信'),(53,'帖後','帖撒羅尼迦後書','書信'),
+    (54,'提前','提摩太前書','書信'),(55,'提後','提摩太後書','書信'),(56,'多','提多書','書信'),
+    (57,'門','腓利門書','書信'),(58,'來','希伯來書','書信'),(59,'雅','雅各書','書信'),
+    (60,'彼前','彼得前書','書信'),(61,'彼後','彼得後書','書信'),
+    (62,'約一','約翰一書','書信'),(63,'約二','約翰二書','書信'),(64,'約三','約翰三書','書信'),
+    (65,'猶','猶大書','書信'),(66,'啟','啟示錄','啟示錄'),
+]
+
+CAT_ORDER = ['律法書','歷史書','詩歌書','大先知書','小先知書','福音書','使徒行傳','書信','啟示錄']
+CAT_LABEL = {
+    '律法書':'律法書',  '歷史書':'歷史書', '詩歌書':'詩歌書',
+    '大先知書':'大先知書','小先知書':'小先知書','福音書':'福音書',
+    '使徒行傳':'使徒行傳','書信':'書信','啟示錄':'啟示錄',
+}
+# For zh-hans, swap to simplified labels
+if lang == 'zh-hans':
+    CAT_LABEL = {
+        '律法書':'律法书','歷史書':'历史书','詩歌書':'诗歌书',
+        '大先知書':'大先知书','小先知書':'小先知书','福音書':'福音书',
+        '使徒行傳':'使徒行传','書信':'书信','啟示錄':'启示录',
+    }
+
+# Scan existing files and map book_num → filename
+bible_dir = f"{lang}/bible"
+existing = {}
+if os.path.isdir(bible_dir):
+    for fname in os.listdir(bible_dir):
+        if fname.lower().endswith('.pdf'):
+            nums = re.findall(r'\d+', os.path.splitext(fname)[0])
+            for n in nums:
+                ni = int(n)
+                if 1 <= ni <= 66:
+                    existing[ni] = fname
+                    break
+
+base     = f"/{repo}/{lang}/bible"
+back_url = f"/{repo}/{lang}/index.html"
+
+# Group books by category
+from collections import defaultdict
+cats = defaultdict(list)
+for b in BOOKS:
+    cats[b[3]].append(b)
+
+html = f'''<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{title}</title>
+  <link rel="stylesheet" href="/{repo}/assets/css/style.css"/>
+  <style>
+    .testament-header {{
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 2.5rem 0 1rem;
+    }}
+    .testament-label {{
+      font-family: var(--font-s);
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--gold-dim);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }}
+    .testament-line {{
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }}
+    .testament-divider {{
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, var(--gold-dim), transparent);
+      margin: 2.5rem 0 2rem;
+    }}
+    .cat-section {{ margin-bottom: 1.5rem; }}
+    .cat-label {{
+      font-size: .7rem;
+      color: var(--text3);
+      letter-spacing: .12em;
+      margin-bottom: .75rem;
+      font-family: var(--font-b);
+    }}
+    .books-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+      gap: .6rem;
+    }}
+    .book-tile {{
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r);
+      text-align: center;
+      padding: .3rem .2rem;
+      transition: all .2s;
+      position: relative;
+    }}
+    .book-tile.avail {{
+      background: var(--surf);
+      border: 1px solid var(--gold-dim);
+      cursor: pointer;
+      text-decoration: none;
+    }}
+    .book-tile.avail:hover {{
+      background: var(--surf2);
+      border-color: var(--gold);
+      transform: scale(1.06);
+      box-shadow: 0 4px 16px rgba(201,160,80,.25);
+    }}
+    .book-tile.miss {{
+      background: var(--miss);
+      border: 1px dashed var(--miss-bdr);
+    }}
+    .book-abbr {{
+      font-family: var(--font-s);
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1;
+    }}
+    .book-tile.avail .book-abbr {{ color: var(--gold-text); }}
+    .book-tile.miss .book-abbr  {{ color: var(--text3); }}
+    .book-fullname {{
+      font-size: .58rem;
+      margin-top: .2rem;
+      line-height: 1.2;
+      display: none;
+    }}
+    .book-tile.avail .book-fullname {{ color: var(--text2); }}
+    .book-tile.miss .book-fullname  {{ color: var(--text3); }}
+    .book-num {{
+      position: absolute;
+      top: 3px; right: 5px;
+      font-size: .5rem;
+      color: var(--text3);
+    }}
+    @media (min-width: 420px) {{
+      .books-grid {{ grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }}
+      .book-fullname {{ display: block; }}
+      .book-abbr {{ font-size: 1.15rem; }}
+    }}
+    @media (min-width: 700px) {{
+      .books-grid {{ grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: .7rem; }}
+    }}
+    .stat-bar {{
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      font-size: .82rem;
+      color: var(--text2);
+    }}
+    .stat-dot {{ width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }}
+    .stat-avail {{ background: var(--surf); border: 1px solid var(--gold-dim); }}
+    .stat-miss  {{ background: var(--miss); border: 1px dashed var(--miss-bdr); }}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a href="{back_url}" class="back">{back}</a>
+    <h1 class="sec-title">{title}</h1>
+    <div class="stat-bar">
+      <span class="stat-dot stat-avail"></span><span>已上傳 ({len(existing)}/66)</span>
+      <span class="stat-dot stat-miss"></span><span>尚未上傳</span>
+    </div>
+'''
+
+for i, cat in enumerate(CAT_ORDER):
+    if cat not in cats:
+        continue
+    if cat in ('福音書','使徒行傳','書信','啟示錄') and i > 0 and CAT_ORDER[i-1] not in ('福音書','使徒行傳','書信','啟示錄'):
+        html += '    <div class="testament-divider"></div>\n'
+        nt_label = '新約聖經' if lang == 'zh-hant' else '新约圣经'
+        html += f'    <div class="testament-header"><span class="testament-label">{nt_label}</span><div class="testament-line"></div></div>\n'
+    if i == 0:
+        ot_label = '舊約聖經' if lang == 'zh-hant' else '旧约圣经'
+        html += f'    <div class="testament-header"><span class="testament-label">{ot_label}</span><div class="testament-line"></div></div>\n'
+
+    html += f'    <div class="cat-section">\n'
+    html += f'      <div class="cat-label">{CAT_LABEL[cat]}</div>\n'
+    html += f'      <div class="books-grid">\n'
+    for (num, abbr, name, _) in cats[cat]:
+        if num in existing:
+            url = f"{base}/{existing[num]}"
+            html += f'        <a href="{url}" target="_blank" class="book-tile avail" title="{name}">\n'
+            html += f'          <span class="book-num">{num:02d}</span>\n'
+            html += f'          <span class="book-abbr">{abbr}</span>\n'
+            html += f'          <span class="book-fullname">{name}</span>\n'
+            html += f'        </a>\n'
+        else:
+            html += f'        <div class="book-tile miss" title="{name}（未上傳）">\n'
+            html += f'          <span class="book-num">{num:02d}</span>\n'
+            html += f'          <span class="book-abbr">{abbr}</span>\n'
+            html += f'          <span class="book-fullname">{name}</span>\n'
+            html += f'        </div>\n'
+    html += '      </div>\n    </div>\n'
+
+html += '''  </div>
+</body>
+</html>
+'''
+
+out = f"{lang}/bible/index.html"
+os.makedirs(os.path.dirname(out), exist_ok=True)
+with open(out, 'w', encoding='utf-8') as f:
+    f.write(html)
+print(f"Written {out}")
+PYEOF
+
+          # ── gen_devotional.py ────────────────────────────────────────────────
+          cat > /tmp/gen_devotional.py << 'PYEOF'
+#!/usr/bin/env python3
+import os, sys, re
+
+lang  = sys.argv[1]
+repo  = sys.argv[2]
+title = sys.argv[3]
+back  = sys.argv[4]
+
+MONTHS_TW = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月']
+DAYS = [31,29,31,30,31,30,31,31,30,31,30,31]
+
+dev_dir = f"{lang}/devotional"
+base    = f"/{repo}/{lang}/devotional"
+back_url= f"/{repo}/{lang}/index.html"
+
+existing = set()
+if os.path.isdir(dev_dir):
+    for fname in os.listdir(dev_dir):
+        m = re.match(r'^(\d{2})\.(\d{2})\.pdf$', fname)
+        if m:
+            existing.add((int(m.group(1)), int(m.group(2))))
+
+total   = sum(DAYS)
+present = len(existing)
+
+html = f'''<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{title}</title>
+  <link rel="stylesheet" href="/{repo}/assets/css/style.css"/>
+  <style>
+    .cal-header {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }}
+    .progress-bar {{
+      height: 3px;
+      background: var(--surf2);
+      border-radius: 99px;
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }}
+    .progress-fill {{
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+      border-radius: 99px;
+      width: {present/total*100:.1f}%;
+      transition: width .4s ease;
+    }}
+    .month-tabs {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      margin-bottom: 2rem;
+    }}
+    .mtab {{
+      padding: .35rem .75rem;
+      border-radius: 99px;
+      font-size: .8rem;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      background: var(--surf);
+      cursor: pointer;
+      transition: all .2s;
+    }}
+    .mtab:hover {{ border-color: var(--gold-dim); color: var(--gold-text); }}
+    .mtab.active {{ background: var(--gold-dim); border-color: var(--gold); color: var(--gold-text); font-weight: 600; }}
+    .month-grid {{ display: none; }}
+    .month-grid.visible {{ display: block; }}
+    .month-name {{
+      font-family: var(--font-s);
+      font-size: 1.1rem;
+      color: var(--gold-text);
+      margin-bottom: 1rem;
+    }}
+    .days-grid {{
+      display: grid;
+      grid-template-columns: repeat(7,1fr);
+      gap: .45rem;
+    }}
+    .day-tile {{
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--r);
+      font-size: .8rem;
+      font-weight: 500;
+      transition: all .2s;
+      position: relative;
+    }}
+    .day-tile.avail {{
+      background: var(--surf);
+      border: 1px solid var(--border);
+      color: var(--text);
+      text-decoration: none;
+      cursor: pointer;
+    }}
+    .day-tile.avail:hover {{
+      background: var(--surf2);
+      border-color: var(--gold-dim);
+      color: var(--gold-text);
+      transform: scale(1.08);
+      box-shadow: 0 3px 12px rgba(201,160,80,.2);
+      z-index: 1;
+    }}
+    .day-tile.miss {{
+      background: var(--miss);
+      border: 1px dashed var(--miss-bdr);
+      color: var(--text3);
+    }}
+    .day-tile.today-marker {{
+      background: var(--today) !important;
+      border: 1px solid var(--today-bdr) !important;
+      color: #f0c090 !important;
+      box-shadow: 0 0 0 3px rgba(160,53,32,.35);
+    }}
+    .day-num {{ font-size: .85rem; line-height: 1; }}
+    .day-dot {{
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+      margin-top: 2px;
+    }}
+    .day-tile.miss .day-dot {{ background: var(--text3); opacity: .4; }}
+    @media (max-width: 400px) {{
+      .days-grid {{ gap: .3rem; }}
+      .day-tile {{ font-size: .7rem; }}
+      .day-num {{ font-size: .75rem; }}
+    }}
+    .stat-line {{ font-size: .82rem; color: var(--text2); margin-bottom: .5rem; }}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a href="{back_url}" class="back">{back}</a>
+    <h1 class="sec-title">{title}</h1>
+    <p class="stat-line">已上傳 {present} / {total} 天</p>
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+    <div class="month-tabs">
+'''
+
+for i, mname in enumerate(MONTHS_TW):
+    html += f'      <button class="mtab" data-m="{i}" onclick="showMonth({i})">{mname}</button>\n'
+
+html += '    </div>\n'
+
+for mi, mname in enumerate(MONTHS_TW):
+    mm = mi + 1
+    days = DAYS[mi]
+    html += f'    <div class="month-grid" id="m{mi}">\n'
+    html += f'      <div class="month-name">{mname}</div>\n'
+    html += '      <div class="days-grid">\n'
+    for d in range(1, days + 1):
+        key   = (mm, d)
+        date_str = f'{mm:02d}.{d:02d}'
+        if key in existing:
+            url = f"{base}/{date_str}.pdf"
+            html += f'        <a href="{url}" target="_blank" class="day-tile avail" data-date="{date_str}" title="{date_str}">\n'
+            html += f'          <span class="day-num">{d}</span><div class="day-dot"></div>\n'
+            html += f'        </a>\n'
+        else:
+            html += f'        <div class="day-tile miss" data-date="{date_str}" title="{date_str}（未上傳）">\n'
+            html += f'          <span class="day-num">{d}</span><div class="day-dot"></div>\n'
+            html += f'        </div>\n'
+    html += '      </div>\n    </div>\n'
+
+html += '''  </div>
+  <script>
+    function showMonth(idx) {
+      document.querySelectorAll('.month-grid').forEach(el => el.classList.remove('visible'));
+      document.querySelectorAll('.mtab').forEach(el => el.classList.remove('active'));
+      document.getElementById('m' + idx).classList.add('visible');
+      document.querySelectorAll('.mtab')[idx].classList.add('active');
+    }
+    // Highlight today and open its month
+    (function() {
+      const t = new Date();
+      const mm = String(t.getMonth()+1).padStart(2,'0');
+      const dd = String(t.getDate()).padStart(2,'0');
+      const key = mm + '.' + dd;
+      const el = document.querySelector('[data-date="' + key + '"]');
+      if (el) el.classList.add('today-marker');
+      showMonth(t.getMonth());
+    })();
+  </script>
+</body>
+</html>
+'''
+
+out = f"{lang}/devotional/index.html"
+os.makedirs(os.path.dirname(out), exist_ok=True)
+with open(out, 'w', encoding='utf-8') as f:
+    f.write(html)
+print(f"Written {out}")
+PYEOF
+
+          # ── gen_poetry.py ─────────────────────────────────────────────────────
+          cat > /tmp/gen_poetry.py << 'PYEOF'
+#!/usr/bin/env python3
+import os, sys, re, glob
+
+lang  = sys.argv[1]
+repo  = sys.argv[2]
+title = sys.argv[3]
+back  = sys.argv[4]
+
+poetry_dir = f"{lang}/poetry"
+base       = f"/{repo}/{lang}/poetry"
+back_url   = f"/{repo}/{lang}/index.html"
+
+# Collect song folders (subdirectories, sorted)
+songs = []
+if os.path.isdir(poetry_dir):
+    for entry in sorted(os.scandir(poetry_dir), key=lambda e: e.name):
+        if not entry.is_dir():
+            continue
+        song_dir = entry.path
+        song_name = entry.name
+        pdfs  = sorted(glob.glob(os.path.join(song_dir, '*.pdf')))
+        mp3s  = sorted(glob.glob(os.path.join(song_dir, '*.mp3')))
+        pdf   = pdfs[0]  if pdfs  else None
+        mp3   = mp3s[0]  if mp3s  else None
+        songs.append({'name': song_name, 'pdf': pdf, 'mp3': mp3,
+                      'pdf_name': os.path.basename(pdf) if pdf else None,
+                      'mp3_name': os.path.basename(mp3) if mp3 else None})
+
+# ── Generate individual song pages ────────────────────────────────────────
+for s in songs:
+    song_dir_url = f"{base}/{s['name']}"
+    song_page    = f"{lang}/poetry/{s['name']}/index.html"
+    pdf_url      = f"{song_dir_url}/{s['pdf_name']}" if s['pdf'] else None
+    mp3_url      = f"{song_dir_url}/{s['mp3_name']}" if s['mp3'] else None
+
+    sh = f'''<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{s['name']}</title>
+  <link rel="stylesheet" href="/{repo}/assets/css/style.css"/>
+  <style>
+    body {{ display: flex; flex-direction: column; min-height: 100vh; }}
+    .song-wrap {{ flex: 1; display: flex; flex-direction: column; padding: 1.2rem 1rem 2rem; max-width: 900px; margin: 0 auto; width: 100%; }}
+    .song-title {{ font-family: var(--font-s); font-size: clamp(1.1rem,3vw,1.5rem); color: var(--gold-text); margin-bottom: 1.2rem; }}
+    .pdf-wrap {{
+      flex: 1;
+      min-height: 60vh;
+      background: var(--surf2);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+    }}
+    .pdf-wrap iframe {{
+      flex: 1;
+      width: 100%;
+      min-height: 60vh;
+      border: none;
+      display: block;
+    }}
+    .pdf-fallback {{ display:none; text-align:center; padding: 2rem; color: var(--text2); font-size:.9rem; }}
+    .audio-section {{
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1rem 1.2rem;
+      margin-bottom: 1rem;
+    }}
+    .audio-label {{ font-size: .78rem; color: var(--text2); margin-bottom: .6rem; letter-spacing: .05em; }}
+    audio {{ width: 100%; border-radius: 4px; }}
+    .dl-row {{ display: flex; gap: .75rem; flex-wrap: wrap; }}
+    .dl-row .btn {{ min-width: 120px; justify-content: center; }}
+  </style>
+</head>
+<body>
+  <div class="song-wrap">
+    <a href="{base}/index.html" class="back">{title}</a>
+    <h1 class="song-title">{s['name']}</h1>
+'''
+    if pdf_url:
+        sh += f'''    <div class="pdf-wrap">
+      <iframe src="{pdf_url}" title="{s['name']}">
+        <div class="pdf-fallback">
+          您的瀏覽器不支援直接顯示 PDF。<br/>
+          <a href="{pdf_url}" download class="btn btn-gold" style="margin-top:1rem">下載 PDF</a>
+        </div>
+      </iframe>
+    </div>
+'''
+    else:
+        sh += '    <div class="pdf-wrap" style="align-items:center;justify-content:center"><p style="color:var(--text3)">PDF 尚未上傳</p></div>\n'
+
+    if mp3_url:
+        sh += f'''    <div class="audio-section">
+      <div class="audio-label">🎵 音頻播放</div>
+      <audio controls preload="metadata">
+        <source src="{mp3_url}" type="audio/mpeg"/>
+        您的瀏覽器不支援音頻播放。
+      </audio>
+    </div>
+'''
+    sh += '    <div class="dl-row">\n'
+    if pdf_url:
+        sh += f'      <a href="{pdf_url}" download class="btn btn-gold">⬇ 下載 PDF</a>\n'
+        sh += f'      <a href="{pdf_url}" target="_blank" class="btn btn-outline">🔗 在瀏覽器打開</a>\n'
+    if mp3_url:
+        sh += f'      <a href="{mp3_url}" download class="btn btn-outline">⬇ 下載 MP3</a>\n'
+    sh += '''    </div>
+  </div>
+</body>
+</html>
+'''
+    os.makedirs(os.path.dirname(song_page), exist_ok=True)
+    with open(song_page, 'w', encoding='utf-8') as f:
+        f.write(sh)
+
+# ── Generate poetry index page ─────────────────────────────────────────────
+html = f'''<!DOCTYPE html>
+<html lang="{lang}">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{title}</title>
+  <link rel="stylesheet" href="/{repo}/assets/css/style.css"/>
+  <style>
+    .song-list {{ display: flex; flex-direction: column; gap: .75rem; max-width: 700px; }}
+    .song-row {{
+      display: flex;
+      align-items: center;
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 1rem 1.2rem;
+      gap: 1rem;
+      transition: all .25s;
+      text-decoration: none;
+    }}
+    .song-row:hover {{ background: var(--surf2); border-color: var(--gold-dim); transform: translateX(4px); }}
+    .song-num {{ font-size: .75rem; color: var(--text3); min-width: 24px; font-family: var(--font-b); }}
+    .song-info {{ flex: 1; }}
+    .song-name {{ font-family: var(--font-s); font-size: 1rem; color: var(--text); }}
+    .song-badges {{ display: flex; gap: .4rem; margin-top: .3rem; }}
+    .badge {{ font-size: .65rem; padding: .15rem .45rem; border-radius: 99px; border: 1px solid; }}
+    .badge-pdf {{ border-color: var(--gold-dim); color: var(--gold-dim); }}
+    .badge-mp3 {{ border-color: #4a7a4a; color: #6baa6b; }}
+    .badge-miss {{ border-color: var(--text3); color: var(--text3); }}
+    .song-arrow {{ color: var(--text3); font-size: .9rem; }}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a href="{back_url}" class="back">{back}</a>
+    <h1 class="sec-title">{title}</h1>
+    <div class="song-list">
+'''
+
+for i, s in enumerate(songs, 1):
+    song_url = f"{base}/{s['name']}/index.html"
+    pdf_badge = '<span class="badge badge-pdf">PDF</span>' if s['pdf'] else '<span class="badge badge-miss">PDF 待上傳</span>'
+    mp3_badge = '<span class="badge badge-mp3">MP3</span>' if s['mp3'] else '<span class="badge badge-miss">MP3 待上傳</span>'
+    html += f'''      <a href="{song_url}" class="song-row">
+        <span class="song-num">{i:02d}</span>
+        <div class="song-info">
+          <div class="song-name">{s['name']}</div>
+          <div class="song-badges">{pdf_badge}{mp3_badge}</div>
+        </div>
+        <span class="song-arrow">›</span>
+      </a>
+'''
+
+if not songs:
+    html += '      <p style="color:var(--text2)">尚未上傳詩歌 — 請在 poetry/ 目錄下建立各詩歌子資料夾</p>\n'
+
+html += f'''    </div>
+  </div>
+</body>
+</html>
+'''
+
+out = f"{lang}/poetry/index.html"
+os.makedirs(os.path.dirname(out), exist_ok=True)
+with open(out, 'w', encoding='utf-8') as f:
+    f.write(html)
+print(f"Written {out} ({len(songs)} songs)")
+PYEOF
+
+          echo "Generator scripts written."
+
+      # ── Run all generators ───────────────────────────────────────────────────
+      - name: Generate all section pages
+        run: |
+          python3 /tmp/gen_shuiling.py zh-hant "$REPO" "屬靈書"     "繁體中文"
+          python3 /tmp/gen_shuiling.py zh-hans "$REPO" "属灵书"     "简体中文"
+
+          python3 /tmp/gen_bible.py    zh-hant "$REPO" "聖經難字粵音" "繁體中文"
+          python3 /tmp/gen_bible.py    zh-hans "$REPO" "圣经难字粤音" "简体中文"
+
+          python3 /tmp/gen_devotional.py zh-hant "$REPO" "靈修資料"  "繁體中文"
+          python3 /tmp/gen_devotional.py zh-hans "$REPO" "灵修资料"  "简体中文"
+
+          python3 /tmp/gen_poetry.py   zh-hant "$REPO" "詩歌"       "繁體中文"
+          python3 /tmp/gen_poetry.py   zh-hans "$REPO" "诗歌"       "简体中文"
+
+      # ── Commit generated files ───────────────────────────────────────────────
+      - name: Commit generated files
+        run: |
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name  "github-actions[bot]"
+          git add assets zh-hant zh-hans
+          if git diff --staged --quiet; then
+            echo "Nothing to commit."
+          else
+            git commit -m "chore: auto-generate pages & thumbnails [skip ci]"
+            git push origin main
+          fi
+
+      # ── Upload Pages artifact ────────────────────────────────────────────────
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
