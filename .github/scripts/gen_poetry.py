@@ -5,6 +5,7 @@ lang  = sys.argv[1]
 repo  = sys.argv[2]
 title = sys.argv[3]
 back  = sys.argv[4]
+ver   = sys.argv[5] if len(sys.argv) > 5 else 'dev'
 
 poetry_dir = f"{lang}/poetry"
 base       = f"/{repo}/{lang}/poetry"
@@ -25,7 +26,7 @@ if os.path.isdir(poetry_dir):
         })
 
 # ── Individual song pages ──────────────────────────────────────────────────────
-SONG_CSS = f'''  <link rel="stylesheet" href="/{repo}/assets/css/style.css"/>
+SONG_CSS = f'''  <link rel="stylesheet" href="/{repo}/assets/css/style.css?v={ver}"/>
   <style>
     html, body {{ height: 100%; }}
     body {{ display: flex; flex-direction: column; }}
@@ -79,8 +80,8 @@ SONG_CSS = f'''  <link rel="stylesheet" href="/{repo}/assets/css/style.css"/>
 
 for s in songs:
     song_url = f"{base}/{s['name']}"
-    pdf_url  = f"{song_url}/{s['pdf_name']}" if s['pdf'] else None
-    mp3_url  = f"{song_url}/{s['mp3_name']}" if s['mp3'] else None
+    pdf_url  = f"{song_url}/{s['pdf_name']}?v={ver}" if s['pdf'] else None
+    mp3_url  = f"{song_url}/{s['mp3_name']}?v={ver}" if s['mp3'] else None
 
     sh = f'''<!DOCTYPE html>
 <html lang="{lang}">
@@ -136,7 +137,7 @@ html = f'''<!DOCTYPE html>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{title}</title>
-  <link rel="stylesheet" href="/{repo}/assets/css/style.css"/>
+  <link rel="stylesheet" href="/{repo}/assets/css/style.css?v={ver}"/>
   <style>
     .song-list {{ display: flex; flex-direction: column; gap: .65rem; max-width: 720px; }}
     .song-row {{
