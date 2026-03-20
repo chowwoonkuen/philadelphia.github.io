@@ -11,6 +11,14 @@ poetry_dir = f"{lang}/poetry"
 base       = f"/{repo}/{lang}/poetry"
 back_url   = f"/{repo}/{lang}/index.html"
 
+# ── i18n UI strings ────────────────────────────────────────────────────────────
+is_hans          = lang == 'zh-hans'
+s_pdf_missing    = 'PDF 尚未上传' if is_hans else 'PDF 尚未上傳'
+s_mp3_missing    = 'MP3 尚未上传' if is_hans else 'MP3 尚未上傳'
+s_pdf_pending    = 'PDF 待上传' if is_hans else 'PDF 待上傳'
+s_mp3_pending    = 'MP3 待上传' if is_hans else 'MP3 待上傳'
+s_no_songs       = '尚未上传诗歌 — 请在 poetry/ 目录下建立各诗歌子资料夹' if is_hans else '尚未上傳詩歌 — 請在 poetry/ 目錄下建立各詩歌子資料夾'
+
 songs = []
 if os.path.isdir(poetry_dir):
     for entry in sorted(os.scandir(poetry_dir), key=lambda e: e.name):
@@ -103,8 +111,8 @@ for s in songs:
     </div>
 '''
     else:
-        sh += '''    <div class="pdf-section">
-      <div class="pdf-missing">PDF 尚未上傳</div>
+        sh += f'''    <div class="pdf-section">
+      <div class="pdf-missing">{s_pdf_missing}</div>
     </div>
 '''
     # Audio section
@@ -113,7 +121,7 @@ for s in songs:
     if mp3_url:
         sh += f'      <audio controls preload="metadata"><source src="{mp3_url}" type="audio/mpeg"/>您的瀏覽器不支援音頻播放。</audio>\n'
     else:
-        sh += '      <div class="audio-missing">MP3 尚未上傳</div>\n'
+        sh += f'      <div class="audio-missing">{s_mp3_missing}</div>\n'
     sh += '    </div>\n'
 
     # Download row
@@ -173,8 +181,8 @@ html = f'''<!DOCTYPE html>
 '''
 for i, s in enumerate(songs, 1):
     song_url  = f"{base}/{s['name']}/index.html"
-    pdf_badge = '<span class="badge badge-pdf">PDF ✓</span>' if s['pdf'] else '<span class="badge badge-miss">PDF 待上傳</span>'
-    mp3_badge = '<span class="badge badge-mp3">MP3 ✓</span>' if s['mp3'] else '<span class="badge badge-miss">MP3 待上傳</span>'
+    pdf_badge = '<span class="badge badge-pdf">PDF ✓</span>' if s['pdf'] else f'<span class="badge badge-miss">{s_pdf_pending}</span>'
+    mp3_badge = '<span class="badge badge-mp3">MP3 ✓</span>' if s['mp3'] else f'<span class="badge badge-miss">{s_mp3_pending}</span>'
     html += f'''      <a href="{song_url}" class="song-row">
         <span class="song-num">{i:02d}</span>
         <div class="song-info">
@@ -185,7 +193,7 @@ for i, s in enumerate(songs, 1):
       </a>
 '''
 if not songs:
-    html += '      <p style="color:var(--text2);padding:2rem 0">尚未上傳詩歌 — 請在 poetry/ 目錄下建立各詩歌子資料夾</p>\n'
+    html += f'      <p style="color:var(--text2);padding:2rem 0">{s_no_songs}</p>\n'
 html += f'''    </div>
   </div>
 </body>
