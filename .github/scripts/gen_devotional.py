@@ -14,6 +14,13 @@ dev_dir  = f"{lang}/devotional"
 base     = f"/{repo}/{lang}/devotional"
 back_url = f"/{repo}/{lang}/index.html"
 
+# ── i18n UI strings ────────────────────────────────────────────────────────────
+is_hans      = lang == 'zh-hans'
+s_uploaded   = '已上传' if is_hans else '已上傳'
+s_not_upload = '尚未上传' if is_hans else '尚未上傳'
+s_click_read = '点击阅读' if is_hans else '點擊閱讀'
+s_not_avail  = '未上传' if is_hans else '未上傳'
+
 existing = set()
 if os.path.isdir(dev_dir):
     for fname in os.listdir(dev_dir):
@@ -160,13 +167,13 @@ html = f'''<!DOCTYPE html>
     <h1 class="sec-title">{title}</h1>
 
     <div class="progress-row">
-      <span>已上傳 <strong>{present}</strong> / {total} 天</span>
+      <span>{s_uploaded} <strong>{present}</strong> / {total} 天</span>
       <div class="progress-bar"><div class="progress-fill"></div></div>
     </div>
 
     <div class="legend">
-      <div class="legend-item"><span class="leg-dot leg-avail"></span><span>已上傳（點擊閱讀）</span></div>
-      <div class="legend-item"><span class="leg-dot leg-miss"></span><span>尚未上傳</span></div>
+      <div class="legend-item"><span class="leg-dot leg-avail"></span><span>{s_uploaded}（{s_click_read}）</span></div>
+      <div class="legend-item"><span class="leg-dot leg-miss"></span><span>{s_not_upload}</span></div>
       <div class="legend-item"><span class="leg-dot leg-today"></span><span>今天</span></div>
     </div>
 
@@ -188,10 +195,10 @@ for mi, mname in enumerate(MONTHS):
         date_str = f'{mm:02d}.{d:02d}'
         if (mm, d) in existing:
             url = f"{base}/{date_str}.pdf?v={ver}"
-            html += f'        <a href="{url}" target="_blank" class="day-tile avail" data-date="{date_str}" title="{date_str}（點擊閱讀）">\n'
+            html += f'        <a href="{url}" target="_blank" class="day-tile avail" data-date="{date_str}" title="{date_str}（{s_click_read}）">\n'
             html += f'          <span class="day-num">{d}</span><div class="day-dot"></div>\n        </a>\n'
         else:
-            html += f'        <div class="day-tile miss" data-date="{date_str}" title="{date_str}（未上傳）">\n'
+            html += f'        <div class="day-tile miss" data-date="{date_str}" title="{date_str}（{s_not_avail}）">\n'
             html += f'          <span class="day-num">{d}</span><div class="day-dot"></div>\n        </div>\n'
     html += '      </div>\n    </div>\n'
 
