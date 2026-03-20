@@ -23,9 +23,9 @@ The filename **must contain the 2-digit book number** (01–66):
 
 | Book | Correct filename example |
 |------|--------------------------|
-| 創世記 (Genesis) | `創世記01.pdf` |
-| 約翰福音 (John) | `約翰福音43.pdf` |
-| 啟示錄 (Revelation) | `啟示錄66.pdf` |
+| 創世記 (Genesis) | `01b創世記.pdf` |
+| 約翰福音 (John) | `43b約翰福音.pdf` |
+| 啟示錄 (Revelation) | `66b啟示錄.pdf` |
 
 All 66 books are always shown on the page. Missing books appear dimmed until you upload them.
 
