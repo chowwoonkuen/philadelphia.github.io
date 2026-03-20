@@ -108,7 +108,6 @@
     }
     .mobile-notice .dl-big:hover { background: var(--gold-lt); }
 
-    /* On very small screens where PDF embed fails, show fallback */
     @media (max-width: 480px) {
       .viewer-frame { display: none; }
       .mobile-notice { display: flex; }
@@ -128,8 +127,8 @@
 
   <div class="mobile-notice" id="mobileNotice">
     <span class="notice-icon">📖</span>
-    <p>此頁面在手機上可能無法直接預覽 PDF，<br/>請點擊下方按鈕下載後閱讀。</p>
-    <a id="dlBig" href="#" download class="dl-big">↓ 下載 PDF</a>
+    <p id="mobileMsg">此頁面在手機上可能無法直接預覽 PDF，<br/>請點擊下方按鈕下載後閱讀。</p>
+    <a id="dlBig" href="#" class="dl-big">↓ 下載 PDF</a>
   </div>
 
   <script>
@@ -142,23 +141,37 @@
         return;
       }
 
-      // Build PDF URL relative to this page — no hash, no version param
       var base = location.pathname.replace(/\/[^/]*$/, '/');
       var pdfUrl = base + filename;
 
-      // Derive book name from filename: strip leading digits + 'b', strip .pdf
       var bookName = filename.replace(/^\d+b?/, '').replace(/\.pdf$/i, '');
       document.title = bookName + ' — 聖經難字粵音';
       document.getElementById('barTitle').textContent = bookName;
 
-      // Set iframe src
-      document.getElementById('pdfFrame').src = pdfUrl;
-
-      // Set download links (plain URL, no hash)
+      // Set desktop download button
       document.getElementById('dlBtn').href = pdfUrl;
       document.getElementById('dlBtn').setAttribute('download', filename);
-      document.getElementById('dlBig').href = pdfUrl;
-      document.getElementById('dlBig').setAttribute('download', filename);
+
+      // iOS Safari ignores the download attribute and can't embed PDFs in iframes.
+      // Show the fallback notice instead with a link that opens the PDF in a new tab,
+      // from where users can use the share sheet (box-with-arrow) → Save to Files.
+      var isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      var dlBig = document.getElementById('dlBig');
+      if (isIOS) {
+        document.getElementById('frameWrap').style.display = 'none';
+        document.getElementById('mobileNotice').style.display = 'flex';
+        document.getElementById('mobileMsg').innerHTML = '請點擊下方按鈕開啟 PDF，<br/>然後點擊右上角 <strong>分享</strong> → <strong>儲存到「檔案」</strong> 即可下載。';
+        dlBig.href = pdfUrl;
+        dlBig.textContent = '開啟 PDF';
+        dlBig.removeAttribute('download');
+        dlBig.setAttribute('target', '_blank');
+      } else {
+        dlBig.href = pdfUrl;
+        dlBig.setAttribute('download', filename);
+        document.getElementById('pdfFrame').src = pdfUrl;
+      }
     })();
   </script>
 </body>
