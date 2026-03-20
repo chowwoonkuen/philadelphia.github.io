@@ -12,6 +12,11 @@ thumb_dir = f"/{repo}/assets/thumbs/{lang}/shuiling"
 base      = f"/{repo}/{lang}/shuiling"
 back_url  = f"/{repo}/{lang}/index.html"
 
+# ── i18n UI strings ────────────────────────────────────────────────────────────
+is_hans   = lang == 'zh-hans'
+s_read    = '阅读' if is_hans else '閱讀'
+s_nodata  = '尚无资料 — 上传 PDF 后自动显示' if is_hans else '尚無資料 — 上傳 PDF 後自動顯示'
+
 files = sorted([f for f in os.listdir(src_dir) if f.endswith('.pdf')]) if os.path.isdir(src_dir) else []
 
 html = f'''<!DOCTYPE html>
@@ -117,7 +122,7 @@ for fname in files:
         <div class="book-info">
           <p class="book-name">{stem}</p>
           <div class="book-actions">
-            <a href="{pdf_url}" target="_blank" class="btn btn-outline">閱讀</a>
+            <a href="{pdf_url}" target="_blank" class="btn btn-outline">{s_read}</a>
             <a href="{pdf_url}" download class="btn btn-gold">下載</a>
           </div>
         </div>
@@ -125,7 +130,7 @@ for fname in files:
 '''
 
 if not files:
-    html += '      <p style="color:var(--text2);grid-column:1/-1;padding:2rem 0">尚無資料 — 上傳 PDF 後自動顯示</p>\n'
+    html += f'      <p style="color:var(--text2);grid-column:1/-1;padding:2rem 0">{s_nodata}</p>\n'
 
 html += '''    </div>
   </div>
